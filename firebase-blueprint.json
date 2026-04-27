@@ -1,0 +1,74 @@
+{
+  "entities": {
+    "Employee": {
+      "title": "Employee",
+      "description": "Details of an employee and their salary structure",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "role": { "type": "string", "enum": ["ADMIN", "HR", "EMPLOYEE"] },
+        "salaryStructure": {
+          "type": "object",
+          "properties": {
+            "basic": { "type": "number" },
+            "hra": { "type": "number" },
+            "allowances": { "type": "number" }
+          },
+          "required": ["basic", "hra", "allowances"]
+        },
+        "bankDetails": {
+          "type": "object",
+          "properties": {
+            "accountNumber": { "type": "string" },
+            "bankName": { "type": "string" }
+          }
+        },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "email", "role", "salaryStructure"]
+    },
+    "PayrollRecord": {
+      "title": "Payroll Record",
+      "description": "Monthly salary calculation result for an employee",
+      "type": "object",
+      "properties": {
+        "employeeId": { "type": "string" },
+        "month": { "type": "string" },
+        "gross": { "type": "number" },
+        "tax": { "type": "number" },
+        "pf": { "type": "number" },
+        "leaveDeduction": { "type": "number" },
+        "totalDeductions": { "type": "number" },
+        "netSalary": { "type": "number" },
+        "processedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["employeeId", "month", "netSalary", "processedAt"]
+    },
+    "Admin": {
+      "title": "Admin",
+      "description": "User with administrative privileges",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string" },
+        "uid": { "type": "string" }
+      },
+      "required": ["uid"]
+    }
+  },
+  "firestore": {
+    "employees/{employeeId}": {
+      "schema": "Employee",
+      "description": "Main employee records"
+    },
+    "payrollRecords/{recordId}": {
+      "schema": "PayrollRecord",
+      "description": "Historical payroll data"
+    },
+    "admins/{adminId}": {
+      "schema": "Admin",
+      "description": "Restricted admin list"
+    }
+  }
+}

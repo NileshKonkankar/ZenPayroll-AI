@@ -1,0 +1,99 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Helpers ---
+    
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isEmailVerified() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function getAdmin(uid) {
+      return get(/databases/$(database)/documents/admins/$(uid));
+    }
+
+    function isAdmin() {
+      return isSignedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidEmployee(data) {
+      return data.keys().hasAll(['name', 'email', 'role', 'salaryStructure'])
+        && data.name is string && data.name.size() > 0 && data.name.size() <= 200
+        && data.email is string && data.email.size() <= 200
+        && data.role in ['ADMIN', 'HR', 'EMPLOYEE']
+        && data.salaryStructure is map
+        && data.salaryStructure.basic is number && data.salaryStructure.basic >= 0
+        && data.salaryStructure.hra is number && data.salaryStructure.hra >= 0
+        && data.salaryStructure.allowances is number && data.salaryStructure.allowances >= 0;
+    }
+
+    function isValidPayrollRecord(data) {
+      return data.keys().hasAll(['employeeId', 'month', 'netSalary', 'processedAt'])
+        && data.employeeId is string
+        && data.month is string && data.month.size() <= 20
+        && data.netSalary is number && data.netSalary >= 0
+        && data.processedAt is string; // Simplified for demo, usually timestamp
+    }
+
+    // --- Collections ---
+
+    match /employees/{employeeId} {
+      allow get: if isSignedIn() && (isOwner(employeeId) || isAdmin());
+      allow list: if isSignedIn() && (isAdmin()); // Only admins/HR can browse
+      
+      allow create: if isAdmin() && isValidEmployee(incoming()) && isValidId(employeeId);
+      
+      allow update: if isAdmin() 
+        && isValidEmployee(incoming())
+        && incoming().email == existing().email // Immutable email
+        && (
+          incoming().diff(existing()).affectedKeys().hasOnly(['name', 'role', 'salaryStructure', 'bankDetails', 'updatedAt'])
+        );
+      
+      allow delete: if isAdmin();
+    }
+
+    match /payrollRecords/{recordId} {
+      allow get: if isSignedIn() && (isOwner(existing().employeeId) || isAdmin());
+      allow list: if isSignedIn() && (isAdmin() || (resource.data.employeeId == request.auth.uid));
+      
+      allow create: if isAdmin() && isValidPayrollRecord(incoming()) && isValidId(recordId);
+      allow update: if false; // Payroll history is immutable
+      allow delete: if isAdmin();
+    }
+
+    match /admins/{adminId} {
+      allow read: if isSignedIn();
+      allow write: if false; // Manually provisioned or via backend
+    }
+
+    match /test/{docId} {
+      allow read: if isSignedIn();
+    }
+  }
+}
