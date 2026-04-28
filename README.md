@@ -42,5 +42,3 @@ docker-compose up --build
 - Server-side Gemini API integration to protect secrets.
 - Firestore security rules for role-based access.
 
----
-Built with 💙 using Google AI Studio.
