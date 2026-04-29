@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Users, 
   DollarSign, 
@@ -8,7 +8,10 @@ import {
   ArrowDownRight,
   BarChart3,
   Sparkles,
-  ArrowRight
+  ArrowRight,
+  Database,
+  Loader2,
+  CheckCircle2
 } from 'lucide-react';
 import { 
   BarChart, 
@@ -69,6 +72,28 @@ const StatCard = ({ title, value, icon: Icon, trend, trendValue, color, isAccent
 );
 
 export default function Dashboard() {
+  const [isSeeding, setIsSeeding] = useState(false);
+  const [seedResult, setSeedResult] = useState<{success?: boolean, message?: string} | null>(null);
+
+  const handleSeed = async () => {
+    setIsSeeding(true);
+    setSeedResult(null);
+    try {
+      const res = await fetch('/api/seed', { method: 'POST' });
+      const data = await res.json();
+      if (res.ok) {
+        setSeedResult({ success: true, message: data.message });
+        setTimeout(() => setSeedResult(null), 3000);
+      } else {
+        setSeedResult({ success: false, message: data.message });
+      }
+    } catch (err) {
+      setSeedResult({ success: false, message: "Connection failed" });
+    } finally {
+      setIsSeeding(false);
+    }
+  };
+
   return (
     <div className="space-y-8 max-w-[1600px] mx-auto">
       <header className="flex justify-between items-end">
@@ -81,6 +106,25 @@ export default function Dashboard() {
             <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse"></span>
             LIVE TELEMETRY
           </div>
+          <button 
+            onClick={handleSeed}
+            disabled={isSeeding}
+            className={cn(
+              "px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all active:scale-95",
+              seedResult?.success 
+                ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" 
+                : "bg-slate-900 border border-slate-800 text-slate-400 hover:text-white hover:border-slate-700"
+            )}
+          >
+            {isSeeding ? (
+              <Loader2 size={14} className="animate-spin text-cyan-400" />
+            ) : seedResult?.success ? (
+              <CheckCircle2 size={14} />
+            ) : (
+              <Database size={14} />
+            )}
+            {seedResult?.message || (isSeeding ? "Infecting Nodes..." : "Populate Node Graph")}
+          </button>
         </div>
       </header>
 

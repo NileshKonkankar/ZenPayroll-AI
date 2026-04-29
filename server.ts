@@ -17,14 +17,32 @@ async function startServer() {
   const employeeRoutes = (await import("./server/routes/employeeRoutes")).default;
   const payrollRoutes = (await import("./server/routes/payrollRoutes")).default;
   const aiRoutes = (await import("./server/routes/aiRoutes")).default;
+  const { seedData } = await import("./server/controllers/seedController");
 
   // API Routes
   app.use("/api/employees", employeeRoutes);
   app.use("/api/payroll", payrollRoutes);
   app.use("/api/ai", aiRoutes);
+  app.post("/api/seed", seedData);
   
-  app.get("/api/health", (req, res) => {
-    res.json({ status: "ok", timestamp: new Date().toISOString() });
+  app.get("/api/health", async (req, res) => {
+    let firestoreStatus = "unknown";
+    try {
+      await adminDb.collection("test").limit(1).get();
+      firestoreStatus = "connected";
+    } catch (err: any) {
+      firestoreStatus = `error: ${err.message}`;
+    }
+    res.json({ 
+      status: "ok", 
+      timestamp: new Date().toISOString(),
+      firestore: firestoreStatus,
+      env: {
+        node: process.env.NODE_ENV,
+        hasProjectId: !!(process.env.VITE_FIREBASE_PROJECT_ID),
+        hasDatabaseId: !!(process.env.VITE_FIREBASE_FIRESTORE_DATABASE_ID)
+      }
+    });
   });
 
   // Placeholder for modular routes

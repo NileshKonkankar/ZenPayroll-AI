@@ -42,14 +42,14 @@ service cloud.firestore {
     }
 
     function isValidEmployee(data) {
-      return data.keys().hasAll(['name', 'email', 'role', 'salaryStructure'])
+      return data.keys().hasAll(['name', 'email', 'role', 'salary'])
         && data.name is string && data.name.size() > 0 && data.name.size() <= 200
         && data.email is string && data.email.size() <= 200
-        && data.role in ['ADMIN', 'HR', 'EMPLOYEE']
-        && data.salaryStructure is map
-        && data.salaryStructure.basic is number && data.salaryStructure.basic >= 0
-        && data.salaryStructure.hra is number && data.salaryStructure.hra >= 0
-        && data.salaryStructure.allowances is number && data.salaryStructure.allowances >= 0;
+        && data.role is string
+        && data.salary is map
+        && data.salary.basic is number && data.salary.basic >= 0
+        && data.salary.hra is number && data.salary.hra >= 0
+        && data.salary.allowances is number && data.salary.allowances >= 0;
     }
 
     function isValidPayrollRecord(data) {

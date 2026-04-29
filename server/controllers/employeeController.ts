@@ -13,6 +13,18 @@ export const getEmployees = async (req: Request, res: Response) => {
   }
 };
 
+export const getEmployee = async (req: Request, res: Response) => {
+  try {
+    const doc = await adminDb.collection(COLLECTION).doc(req.params.id).get();
+    if (!doc.exists) {
+      return res.status(404).json({ message: "Employee not found" });
+    }
+    res.json({ id: doc.id, ...doc.data() });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch employee", error });
+  }
+};
+
 export const addEmployee = async (req: Request, res: Response) => {
   try {
     const newEmp = { 

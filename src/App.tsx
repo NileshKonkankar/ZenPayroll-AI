@@ -5,6 +5,7 @@ import { auth } from './lib/firebase';
 import DashboardLayout from './components/layout/DashboardLayout';
 import Dashboard from './pages/Dashboard';
 import Employees from './pages/Employees';
+import EmployeeDetail from './pages/EmployeeDetail';
 import AIAssistant from './pages/AIAssistant';
 import Payroll from './pages/Payroll';
 import Login from './pages/Login';
@@ -38,6 +39,7 @@ export default function App() {
         <Route path="/" element={user ? <DashboardLayout /> : <Navigate to="/login" />}>
           <Route index element={<Dashboard />} />
           <Route path="employees" element={<Employees />} />
+          <Route path="employees/:id" element={<EmployeeDetail />} />
           <Route path="payroll" element={<Payroll />} />
           <Route path="ai-assistant" element={<AIAssistant />} />
         </Route>

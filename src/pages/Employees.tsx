@@ -7,14 +7,18 @@ import {
   Trash2, 
   Mail, 
   Briefcase,
-  Users 
+  Users,
+  Eye,
+  DollarSign
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 
 export default function Employees() {
   const [employees, setEmployees] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchEmployees();
@@ -105,7 +109,10 @@ export default function Employees() {
               ) : employees.map((emp) => (
                 <tr key={emp.id} className="hover:bg-slate-900/20 transition-all group border-l-4 border-l-transparent hover:border-l-cyan-500">
                   <td className="px-8 py-6">
-                    <div className="flex items-center gap-4">
+                    <div 
+                      className="flex items-center gap-4 cursor-pointer"
+                      onClick={() => navigate(`/employees/${emp.id}`)}
+                    >
                       <div className="w-11 h-11 bg-slate-800 text-cyan-400 rounded-full flex items-center justify-center font-black text-sm border border-slate-700 shadow-inner group-hover:border-cyan-500/30 transition-colors">
                         {emp.name[0]}
                       </div>
@@ -132,11 +139,17 @@ export default function Employees() {
                     </div>
                   </td>
                   <td className="px-8 py-6">
-                    <p className="text-sm font-black text-white font-mono">${emp.salary?.basic?.toLocaleString() ?? '0'}</p>
+                    <p className="text-sm font-black text-white font-mono">${(emp.salaryStructure?.basic || emp.salary?.basic)?.toLocaleString() ?? '0'}</p>
                     <p className="text-[9px] text-slate-600 font-bold uppercase tracking-widest">Base Structure</p>
                   </td>
                   <td className="px-8 py-6 text-right">
                     <div className="flex justify-end gap-3 opacity-30 group-hover:opacity-100 transition-opacity">
+                      <button 
+                        onClick={() => navigate(`/employees/${emp.id}`)}
+                        className="p-2.5 text-slate-500 hover:text-white hover:bg-slate-800 rounded-xl transition-all border border-transparent hover:border-slate-700 shadow-lg"
+                      >
+                        <Eye size={16} />
+                      </button>
                       <button className="p-2.5 text-slate-500 hover:text-cyan-400 hover:bg-cyan-500/10 rounded-xl transition-all border border-transparent hover:border-cyan-500/30 shadow-lg">
                         <Edit2 size={16} />
                       </button>
@@ -164,6 +177,157 @@ export default function Employees() {
           )}
         </div>
       </div>
+
+      {/* Registration Modal */}
+      <AnimatePresence>
+        {isModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsModalOpen(false)}
+              className="absolute inset-0 bg-[#020306]/80 backdrop-blur-md"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative w-full max-w-2xl bg-[#0a0b10] border border-slate-800 rounded-[2.5rem] shadow-2xl overflow-hidden"
+            >
+              <div className="p-8 border-b border-slate-800 flex justify-between items-center bg-slate-900/20">
+                <div>
+                  <h3 className="text-xl font-black text-white uppercase tracking-tight">Register New Personnel</h3>
+                  <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mt-1">Identity Integration Protocol</p>
+                </div>
+                <button 
+                  onClick={() => setIsModalOpen(false)}
+                  className="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-500 hover:text-white transition-colors"
+                >
+                  <Plus className="rotate-45" size={20} />
+                </button>
+              </div>
+
+              <form 
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  const formData = new FormData(e.currentTarget);
+                  const data = {
+                    name: formData.get('name'),
+                    email: formData.get('email'),
+                    role: formData.get('role'),
+                    department: formData.get('department'),
+                    joiningDate: formData.get('joiningDate'),
+                    salary: {
+                      basic: Number(formData.get('basic')),
+                      hra: Number(formData.get('hra')),
+                      allowances: Number(formData.get('allowances')),
+                    },
+                    status: 'active'
+                  };
+
+                  try {
+                    const res = await fetch('/api/employees', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify(data)
+                    });
+                    if (res.ok) {
+                      setIsModalOpen(false);
+                      fetchEmployees();
+                    }
+                  } catch (err) {
+                    console.error(err);
+                  }
+                }}
+                className="p-8 space-y-6"
+              >
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Full Identity Name</label>
+                    <input 
+                      name="name"
+                      required
+                      type="text" 
+                      placeholder="e.g. CASSIAN ANDOR" 
+                      className="w-full px-4 py-3 bg-[#05060a] border border-slate-800 rounded-xl focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500/40 outline-none transition-all text-slate-200 placeholder:text-slate-800 text-sm font-bold uppercase"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Comms Interface (Email)</label>
+                    <input 
+                      name="email"
+                      required
+                      type="email" 
+                      placeholder="identity@matrix.net" 
+                      className="w-full px-4 py-3 bg-[#05060a] border border-slate-800 rounded-xl focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500/40 outline-none transition-all text-slate-200 placeholder:text-slate-800 text-sm font-bold"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Designated Role</label>
+                    <input 
+                      name="role"
+                      required
+                      type="text" 
+                      placeholder="e.g. TACTICAL ANALYST" 
+                      className="w-full px-4 py-3 bg-[#05060a] border border-slate-800 rounded-xl focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500/40 outline-none transition-all text-slate-200 placeholder:text-slate-800 text-sm font-bold uppercase"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Deployment Date</label>
+                    <input 
+                      name="joiningDate"
+                      required
+                      type="date" 
+                      className="w-full px-4 py-3 bg-[#05060a] border border-slate-800 rounded-xl focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500/40 outline-none transition-all text-slate-200 placeholder:text-slate-800 text-sm font-bold"
+                    />
+                  </div>
+                </div>
+
+                <div className="p-6 rounded-[2rem] bg-slate-900/40 border border-slate-800 space-y-6">
+                   <h4 className="text-[10px] font-black text-cyan-400 uppercase tracking-widest flex items-center gap-2">
+                      <DollarSign size={14} />
+                      Renuneration Allocation
+                   </h4>
+                   <div className="grid grid-cols-3 gap-4">
+                      <div className="space-y-2">
+                        <label className="text-[9px] font-black text-slate-600 uppercase tracking-widest">Basic</label>
+                        <input name="basic" required type="number" className="w-full px-3 py-2 bg-[#020306] border border-slate-800 rounded-lg text-white font-mono text-xs focus:border-cyan-500/40 outline-none" />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[9px] font-black text-slate-600 uppercase tracking-widest">HRA</label>
+                        <input name="hra" required type="number" className="w-full px-3 py-2 bg-[#020306] border border-slate-800 rounded-lg text-white font-mono text-xs focus:border-cyan-500/40 outline-none" />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[9px] font-black text-slate-600 uppercase tracking-widest">Allowances</label>
+                        <input name="allowances" required type="number" className="w-full px-3 py-2 bg-[#020306] border border-slate-800 rounded-lg text-white font-mono text-xs focus:border-cyan-500/40 outline-none" />
+                      </div>
+                   </div>
+                </div>
+
+                <div className="pt-4 flex gap-4">
+                  <button 
+                    type="button"
+                    onClick={() => setIsModalOpen(false)}
+                    className="flex-1 px-6 py-4 rounded-2xl border border-slate-800 text-[10px] font-black text-slate-500 uppercase tracking-widest hover:bg-slate-900 hover:text-white transition-all"
+                  >
+                    Abort Protocol
+                  </button>
+                  <button 
+                    type="submit"
+                    className="flex-1 bg-cyan-600 hover:bg-cyan-500 text-white px-6 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all shadow-lg shadow-cyan-500/20 active:scale-95"
+                  >
+                    Confirm Integration
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
