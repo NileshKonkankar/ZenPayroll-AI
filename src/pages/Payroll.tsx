@@ -15,11 +15,6 @@ export default function Payroll() {
     pfRate: 0.12
   });
 
-  useEffect(() => {
-    fetchHistory();
-    fetchEmployees();
-  }, []);
-
   const fetchEmployees = async () => {
     try {
       const res = await fetch('/api/employees');
@@ -43,6 +38,11 @@ export default function Payroll() {
       console.error("Failed to fetch history", err);
     }
   };
+
+  useEffect(() => {
+    fetchHistory();
+    fetchEmployees();
+  }, []);
 
   const processPayroll = async () => {
     setLoading(true);

@@ -2,10 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { 
   Plus, 
   Search, 
-  MoreVertical, 
   Edit2, 
   Trash2, 
-  Mail, 
   Briefcase,
   Users,
   Eye,
@@ -19,10 +17,6 @@ export default function Employees() {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    fetchEmployees();
-  }, []);
 
   const fetchEmployees = async () => {
     try {
@@ -41,6 +35,10 @@ export default function Employees() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchEmployees();
+  }, []);
 
   const deleteEmployee = async (id: string) => {
     if (!confirm('Access Restriction: Permanent Deletion?')) return;
