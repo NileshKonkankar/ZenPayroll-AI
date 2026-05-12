@@ -48,13 +48,14 @@
     },
     "Admin": {
       "title": "Admin",
-      "description": "User with administrative privileges",
+      "description": "User with administrative or HR privileges",
       "type": "object",
       "properties": {
         "email": { "type": "string" },
-        "uid": { "type": "string" }
+        "uid": { "type": "string" },
+        "role": { "type": "string", "enum": ["ADMIN", "HR"] }
       },
-      "required": ["uid"]
+      "required": ["uid", "role"]
     }
   },
   "firestore": {

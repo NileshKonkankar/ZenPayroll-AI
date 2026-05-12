@@ -18,17 +18,24 @@ import {
   MoreHorizontal
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useAuth } from '../components/AuthProvider';
 
 export default function EmployeeDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { getToken } = useAuth();
   const [employee, setEmployee] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchEmployee = async () => {
       try {
-        const res = await fetch(`/api/employees/${id}`);
+        const token = await getToken();
+        const res = await fetch(`/api/employees/${id}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
         if (res.ok) {
           const data = await res.json();
           setEmployee(data);
@@ -43,7 +50,7 @@ export default function EmployeeDetail() {
       }
     };
     fetchEmployee();
-  }, [id, navigate]);
+  }, [id, navigate, getToken]);
 
   if (loading) {
     return (

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { 
   Plus, 
   Search, 
@@ -11,16 +11,23 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../components/AuthProvider';
 
 export default function Employees() {
+  const { getToken, role: userRole } = useAuth();
   const [employees, setEmployees] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
 
-  const fetchEmployees = async () => {
+  const fetchEmployees = useCallback(async () => {
     try {
-      const res = await fetch('/api/employees');
+      const token = await getToken();
+      const res = await fetch('/api/employees', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
       const data = await res.json();
       if (res.ok && Array.isArray(data)) {
         setEmployees(data);
@@ -34,16 +41,22 @@ export default function Employees() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [getToken]);
 
   useEffect(() => {
     fetchEmployees();
-  }, []);
+  }, [fetchEmployees]);
 
   const deleteEmployee = async (id: string) => {
     if (!confirm('Access Restriction: Permanent Deletion?')) return;
     try {
-      await fetch(`/api/employees/${id}`, { method: 'DELETE' });
+      const token = await getToken();
+      await fetch(`/api/employees/${id}`, { 
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
       setEmployees(employees.filter(e => e.id !== id));
     } catch (err) {
       console.error(err);
@@ -55,7 +68,7 @@ export default function Employees() {
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-3xl font-black text-white tracking-tight">Active Personnel</h2>
-          <p className="text-slate-500 font-medium text-sm mt-1 uppercase tracking-widest">Employee Directory &bull; Access Level: Admin</p>
+          <p className="text-slate-500 font-medium text-sm mt-1 uppercase tracking-widest">Employee Directory &bull; Access Level: {userRole}</p>
         </div>
         <button 
           onClick={() => setIsModalOpen(true)}
@@ -225,9 +238,13 @@ export default function Employees() {
                   };
 
                   try {
+                    const token = await getToken();
                     const res = await fetch('/api/employees', {
                       method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
+                      headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                      },
                       body: JSON.stringify(data)
                     });
                     if (res.ok) {

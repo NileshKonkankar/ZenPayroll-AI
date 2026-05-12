@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Calculator, CheckCircle, ArrowRight, History, PieChart, FileText, FileCode, FileDown, Loader2, Sparkles, AlertTriangle, PlusCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../lib/utils';
+import { useAuth } from '../components/AuthProvider';
 
 export default function Payroll() {
+  const { getToken } = useAuth();
   const [loading, setLoading] = useState(false);
   const [processed, setProcessed] = useState(false);
   const [history, setHistory] = useState<any[]>([]);
@@ -15,9 +17,12 @@ export default function Payroll() {
     pfRate: 0.12
   });
 
-  const fetchEmployees = async () => {
+  const fetchEmployees = useCallback(async () => {
     try {
-      const res = await fetch('/api/employees');
+      const token = await getToken();
+      const res = await fetch('/api/employees', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
       if (res.ok) {
         const data = await res.json();
         setEmployees(data);
@@ -25,11 +30,14 @@ export default function Payroll() {
     } catch (err) {
       console.error("Failed to fetch employees", err);
     }
-  };
+  }, [getToken]);
 
-  const fetchHistory = async () => {
+  const fetchHistory = useCallback(async () => {
     try {
-      const res = await fetch('/api/payroll/history');
+      const token = await getToken();
+      const res = await fetch('/api/payroll/history', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
       if (res.ok) {
         const data = await res.json();
         setHistory(data);
@@ -37,20 +45,24 @@ export default function Payroll() {
     } catch (err) {
       console.error("Failed to fetch history", err);
     }
-  };
+  }, [getToken]);
 
   useEffect(() => {
     fetchHistory();
     fetchEmployees();
-  }, []);
+  }, [fetchHistory, fetchEmployees]);
 
   const processPayroll = async () => {
     setLoading(true);
     setError(null);
     try {
+      const token = await getToken();
       const res = await fetch('/api/payroll/process-batch', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({ 
           month: new Date().toLocaleString('default', { month: 'long', year: 'numeric' }),
           globalDeductions: {
@@ -86,9 +98,13 @@ export default function Payroll() {
     setLoading(true);
     setError(null);
     try {
+      const token = await getToken();
       const res = await fetch('/api/payroll/process', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({
           employeeId: selectedEmployeeId,
           month: new Date().toLocaleString('default', { month: 'long', year: 'numeric' }),

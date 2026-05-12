@@ -63,6 +63,17 @@ export const seedData = async (req: Request, res: Response) => {
       });
     });
 
+    // Seed admin record for the user (bootstrap)
+    // In a real app, this would be more secure, but for the demo we'll use the placeholder
+    const adminsRef = adminDb.collection('admins');
+    const adminDoc = adminsRef.doc('bootstrap_admin'); // Using a fixed ID for bootstrap
+    batch.set(adminDoc, {
+      uid: 'KonkankarNilesh@gmail.com', // Placeholder, we should probably check email if UID is unknown
+      email: 'KonkankarNilesh@gmail.com',
+      role: 'ADMIN',
+      createdAt: new Date().toISOString()
+    });
+
     await batch.commit();
     res.json({ message: "Seeding successful", count: SEED_EMPLOYEES.length });
   } catch (error) {

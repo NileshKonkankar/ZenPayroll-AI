@@ -21,12 +21,28 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/admins/$(uid));
     }
 
-    function isAdmin() {
-      return isSignedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
-    }
-
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isStaff() {
+      return isSignedIn() && (
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
+        request.auth.token.email == 'KonkankarNilesh@gmail.com'
+      );
+    }
+
+    function isAdmin() {
+      return isStaff() && (
+        request.auth.token.email == 'KonkankarNilesh@gmail.com' ||
+        (exists(/databases/$(database)/documents/admins/$(request.auth.uid)) && 
+         get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.role == 'ADMIN')
+      );
+    }
+
+    function isHR() {
+      return isStaff() && exists(/databases/$(database)/documents/admins/$(request.auth.uid)) && 
+             get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.role == 'HR';
     }
 
     function isValidId(id) {
@@ -63,33 +79,34 @@ service cloud.firestore {
     // --- Collections ---
 
     match /employees/{employeeId} {
-      allow get: if isSignedIn() && (isOwner(employeeId) || isAdmin());
-      allow list: if isSignedIn() && (isAdmin()); // Only admins/HR can browse
+      allow get: if isSignedIn() && (isOwner(employeeId) || isStaff());
+      allow list: if isSignedIn() && (isStaff()); 
       
-      allow create: if isAdmin() && isValidEmployee(incoming()) && isValidId(employeeId);
+      allow create: if isStaff() && isValidEmployee(incoming()) && isValidId(employeeId);
       
-      allow update: if isAdmin() 
+      allow update: if isStaff() 
         && isValidEmployee(incoming())
         && incoming().email == existing().email // Immutable email
         && (
-          incoming().diff(existing()).affectedKeys().hasOnly(['name', 'role', 'salaryStructure', 'bankDetails', 'updatedAt'])
+          incoming().diff(existing()).affectedKeys().hasOnly(['name', 'role', 'salary', 'department', 'updatedAt'])
         );
       
-      allow delete: if isAdmin();
+      allow delete: if isStaff();
     }
 
     match /payrollRecords/{recordId} {
-      allow get: if isSignedIn() && (isOwner(existing().employeeId) || isAdmin());
-      allow list: if isSignedIn() && (isAdmin() || (resource.data.employeeId == request.auth.uid));
+      allow get: if isSignedIn() && (isOwner(existing().employeeId) || isStaff());
+      allow list: if isSignedIn() && (isStaff() || (resource.data.employeeId == request.auth.uid));
       
-      allow create: if isAdmin() && isValidPayrollRecord(incoming()) && isValidId(recordId);
+      allow create: if isStaff() && isValidPayrollRecord(incoming()) && isValidId(recordId);
       allow update: if false; // Payroll history is immutable
-      allow delete: if isAdmin();
+      allow delete: if isStaff();
     }
 
     match /admins/{adminId} {
-      allow read: if isSignedIn();
-      allow write: if false; // Manually provisioned or via backend
+      allow read: if isStaff();
+      allow create: if isAdmin() || (isSignedIn() && !exists(/databases/$(database)/documents/admins/FIRST_ADMIN_ID)); // Bootstrap logic placeholder
+      allow update, delete: if isAdmin();
     }
 
     match /test/{docId} {

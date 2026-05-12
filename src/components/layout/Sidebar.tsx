@@ -13,15 +13,19 @@ import { cn } from '@/lib/utils';
 import { logout } from '@/lib/firebase';
 import { motion } from 'framer-motion';
 
+import { useAuth } from '../AuthProvider';
+
 const navItems = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
-  { icon: Users, label: 'Employees', path: '/employees' },
-  { icon: CreditCard, label: 'Payroll', path: '/payroll' },
-  { icon: MessageSquare, label: 'AI Assistant', path: '/ai-assistant' },
+  { icon: Users, label: 'Employees', path: '/employees', roles: ['ADMIN', 'HR'] },
+  { icon: CreditCard, label: 'Payroll', path: '/payroll', roles: ['ADMIN', 'HR'] },
+  { icon: MessageSquare, label: 'AI Assistant', path: '/ai-assistant', roles: ['ADMIN', 'HR'] },
+  { icon: Settings, label: 'Settings', path: '/settings', roles: ['ADMIN'] },
 ];
 
 export default function Sidebar() {
   const navigate = useNavigate();
+  const { role, logout: authLogout } = useAuth() as any; // Cast and extend if needed
 
   const handleLogout = async () => {
     try {
@@ -31,6 +35,8 @@ export default function Sidebar() {
       console.error('Logout failed', err);
     }
   };
+
+  const filteredItems = navItems.filter(item => !item.roles || item.roles.includes(role));
 
   return (
     <aside className="w-20 lg:w-64 bg-sidebar-bg border-r border-slate-800/50 flex flex-col h-screen sticky top-0 z-20 transition-all duration-300">
@@ -45,7 +51,7 @@ export default function Sidebar() {
       </div>
 
       <nav className="flex-1 px-4 py-8 space-y-4">
-        {navItems.map((item) => (
+        {filteredItems.map((item) => (
           <NavLink
             key={item.path}
             to={item.path}

@@ -1,7 +1,11 @@
 import { Router } from 'express';
 import { smartAssistant, generatePayrollInsights } from '../services/geminiService';
+import { authenticate, authorize } from '../middleware/auth.middleware';
 
 const router = Router();
+
+router.use(authenticate);
+router.use(authorize(['ADMIN', 'HR']));
 
 router.post('/chat', async (req, res) => {
   const { query, context } = req.body;

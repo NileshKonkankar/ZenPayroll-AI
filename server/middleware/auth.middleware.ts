@@ -1,9 +1,8 @@
 import { Request, Response, NextFunction } from "express";
-import jwt from "jsonwebtoken";
+import admin from "firebase-admin";
+import { adminDb } from "../firebaseAdmin";
 
-const JWT_SECRET = process.env.JWT_SECRET || "supersecret_change_me_in_prod";
-
-export const authenticate = (req: any, res: Response, next: NextFunction) => {
+export const authenticate = async (req: any, res: Response, next: NextFunction) => {
   const token = req.headers.authorization?.split(" ")[1];
 
   if (!token) {
@@ -11,10 +10,25 @@ export const authenticate = (req: any, res: Response, next: NextFunction) => {
   }
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET);
-    req.user = decoded;
+    const decodedToken = await admin.auth().verifyIdToken(token);
+    
+    // Fetch role from Firestore
+    const adminDoc = await adminDb.collection('admins').doc(decodedToken.uid).get();
+    let role = 'EMPLOYEE'; // Default role
+
+    if (adminDoc.exists) {
+      role = adminDoc.data()?.role || 'EMPLOYEE';
+    } else if (decodedToken.email === 'KonkankarNilesh@gmail.com') {
+      role = 'ADMIN'; // Bootstrap fallback
+    }
+
+    req.user = {
+      ...decodedToken,
+      role
+    };
     next();
   } catch (error) {
+    console.error("Auth Error:", error);
     return res.status(401).json({ message: "Invalid or expired token" });
   }
 };

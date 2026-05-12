@@ -3,7 +3,10 @@ import { Send, Bot, User, Sparkles, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
+import { useAuth } from '../components/AuthProvider';
+
 export default function AIAssistant() {
+  const { getToken } = useAuth();
   const [messages, setMessages] = useState<any[]>([
     { role: 'assistant', text: "Terminal ready. I can analyze architecture payroll costs, detect anomalies, or suggest optimizations for the current cycle. What's your inquiry?" }
   ]);
@@ -27,6 +30,7 @@ export default function AIAssistant() {
     setLoading(true);
 
     try {
+      const token = await getToken();
       const context = {
         totalEmployees: 1248,
         monthlyCost: 428500,
@@ -35,7 +39,10 @@ export default function AIAssistant() {
 
       const res = await fetch('/api/ai/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({ query: input, context })
       });
       const data = await res.json();
