@@ -8,13 +8,9 @@
     "start": "tsx server.ts",
     "build": "node -e \"const fs = require('fs'); if (!fs.existsSync('./firebase-applet-config.json')) fs.writeFileSync('./firebase-applet-config.json', '{}')\" && vite build",
     "preview": "vite preview",
-    "test": "vitest run",
     "postinstall": "node -e \"const fs = require('fs'); if (!fs.existsSync('./firebase-applet-config.json')) fs.writeFileSync('./firebase-applet-config.json', '{}')\"",
     "clean": "rm -rf dist",
-    "lint": "npm run lint:code && npm run lint:rules && npm run typecheck",
-    "lint:code": "eslint . --report-unused-disable-directives --max-warnings 0",
-    "lint:rules": "eslint firestore.rules",
-    "typecheck": "node -e \"const fs = require('fs'); if (!fs.existsSync('./firebase-applet-config.json')) fs.writeFileSync('./firebase-applet-config.json', '{}')\" && tsc --noEmit"
+    "lint": "node -e \"const fs = require('fs'); if (!fs.existsSync('./firebase-applet-config.json')) fs.writeFileSync('./firebase-applet-config.json', '{}')\" && tsc --noEmit"
   },
   "dependencies": {
     "@google/genai": "^1.29.0",

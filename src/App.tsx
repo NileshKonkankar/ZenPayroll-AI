@@ -7,6 +7,7 @@ import Employees from './pages/Employees';
 import EmployeeDetail from './pages/EmployeeDetail';
 import AIAssistant from './pages/AIAssistant';
 import Payroll from './pages/Payroll';
+import Settings from './pages/Settings';
 import Login from './pages/Login';
 import { Loader2 } from 'lucide-react';
 
@@ -31,6 +32,7 @@ function AppRoutes() {
         <Route path="employees/:id" element={<EmployeeDetail />} />
         <Route path="payroll" element={<Payroll />} />
         <Route path="ai-assistant" element={<AIAssistant />} />
+        <Route path="settings" element={<Settings />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" />} />

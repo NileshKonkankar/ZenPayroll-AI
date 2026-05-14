@@ -17,6 +17,7 @@ async function startServer() {
   const employeeRoutes = (await import("./server/routes/employeeRoutes")).default;
   const payrollRoutes = (await import("./server/routes/payrollRoutes")).default;
   const aiRoutes = (await import("./server/routes/aiRoutes")).default;
+  const adminRoutes = (await import("./server/routes/adminRoutes")).default;
   const { seedData } = await import("./server/controllers/seedController");
   const { adminDb } = await import("./server/firebaseAdmin");
 
@@ -24,6 +25,7 @@ async function startServer() {
   app.use("/api/employees", employeeRoutes);
   app.use("/api/payroll", payrollRoutes);
   app.use("/api/ai", aiRoutes);
+  app.use("/api/admins", adminRoutes);
   app.post("/api/seed", seedData);
   
   app.get("/api/health", async (req, res) => {
