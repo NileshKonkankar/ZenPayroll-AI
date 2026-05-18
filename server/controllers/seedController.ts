@@ -7,7 +7,7 @@ const SEED_EMPLOYEES = [
     role: "Senior Software Engineer",
     department: "Engineering",
     email: "john.doe@example.com",
-    salary: {
+    salaryStructure: {
       basic: 80000,
       hra: 32000,
       allowances: 15000
@@ -20,7 +20,7 @@ const SEED_EMPLOYEES = [
     role: "Product Manager",
     department: "Product",
     email: "jane.smith@example.com",
-    salary: {
+    salaryStructure: {
       basic: 90000,
       hra: 36000,
       allowances: 18000
@@ -33,7 +33,7 @@ const SEED_EMPLOYEES = [
     role: "UX Designer",
     department: "Design",
     email: "mike.j@example.com",
-    salary: {
+    salaryStructure: {
       basic: 70000,
       hra: 28000,
       allowances: 12000

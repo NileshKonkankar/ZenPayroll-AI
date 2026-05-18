@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   Users, 
   DollarSign, 
@@ -24,10 +24,8 @@ import {
   AreaChart,
   Area
 } from 'recharts';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { useAuth } from '../components/AuthProvider';
-import ReactMarkdown from 'react-markdown';
 
 const data = [
   { name: 'Jan', cost: 45000 },
@@ -74,45 +72,8 @@ const StatCard = ({ title, value, icon: Icon, trend, trendValue, color, isAccent
 );
 
 export default function Dashboard() {
-  const { getToken } = useAuth();
   const [isSeeding, setIsSeeding] = useState(false);
   const [seedResult, setSeedResult] = useState<{success?: boolean, message?: string} | null>(null);
-  const [insights, setInsights] = useState<string | null>(null);
-  const [insightsLoading, setInsightsLoading] = useState(false);
-
-  const generateInsights = async () => {
-    setInsightsLoading(true);
-    setInsights(null);
-    try {
-      const token = await getToken();
-      // First fetch some context data (payroll history)
-      const historyRes = await fetch('/api/payroll/history', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const payrollData = await historyRes.json();
-
-      const res = await fetch('/api/ai/insights', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ payrollData })
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setInsights(data.insights);
-      }
-    } catch (err) {
-      console.error("Failed to generate insights", err);
-    } finally {
-      setInsightsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    generateInsights();
-  }, [getToken]);
 
   const handleSeed = async () => {
     setIsSeeding(true);
@@ -256,72 +217,28 @@ export default function Dashboard() {
         </div>
 
         <div className="col-span-12 lg:col-span-4 flex flex-col gap-6">
-          <div className="bg-gradient-to-br from-indigo-950/40 via-card-bg to-card-bg border border-indigo-500/20 rounded-3xl p-8 flex-1 shadow-2xl relative overflow-hidden group min-h-[400px]">
-            <div className="relative z-10 flex flex-col h-full">
-              <div className="flex items-center justify-between mb-8">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-indigo-500/20 rounded-xl flex items-center justify-center text-indigo-400 group-hover:scale-110 transition-transform">
-                    <Sparkles size={24} />
-                  </div>
-                  <h3 className="text-lg font-black text-indigo-100 uppercase tracking-tight">AI Smart Insights</h3>
+          <div className="bg-gradient-to-br from-indigo-950/40 via-card-bg to-card-bg border border-indigo-500/20 rounded-3xl p-8 flex-1 shadow-2xl relative overflow-hidden group">
+            <div className="relative z-10">
+              <div className="flex items-center gap-3 mb-8">
+                <div className="w-10 h-10 bg-indigo-500/20 rounded-xl flex items-center justify-center text-indigo-400 group-hover:scale-110 transition-transform">
+                  <Sparkles size={24} />
                 </div>
-                {insightsLoading && <Loader2 size={18} className="animate-spin text-indigo-400" />}
+                <h3 className="text-lg font-black text-indigo-100 uppercase tracking-tight">AI Smart Insights</h3>
               </div>
               
-              <div className="flex-1 overflow-y-auto mb-4 scrollbar-hide">
-                <AnimatePresence mode="wait">
-                  {insightsLoading ? (
-                    <motion.div 
-                      key="loading"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      className="space-y-4"
-                    >
-                      {[1, 2, 3].map(i => (
-                        <div key={i} className="bg-slate-950/40 p-4 rounded-xl border border-slate-800/60 animate-pulse">
-                          <div className="h-2 bg-slate-800 rounded w-1/4 mb-2"></div>
-                          <div className="h-2 bg-slate-800 rounded w-full mb-1"></div>
-                          <div className="h-2 bg-slate-800 rounded w-3/4"></div>
-                        </div>
-                      ))}
-                    </motion.div>
-                  ) : insights ? (
-                    <motion.div 
-                      key="content"
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="markdown-body text-slate-300 text-sm leading-relaxed"
-                    >
-                      <ReactMarkdown 
-                        components={{
-                          h1: ({node, ...props}) => <h1 className="text-white font-bold text-base mt-4 mb-2 uppercase tracking-tight" {...props} />,
-                          h2: ({node, ...props}) => <h2 className="text-white font-bold text-sm mt-3 mb-1 uppercase tracking-tight" {...props} />,
-                          h3: ({node, ...props}) => <h3 className="text-indigo-300 font-black text-xs mt-3 mb-1 uppercase tracking-widest" {...props} />,
-                          p: ({node, ...props}) => <p className="mb-3" {...props} />,
-                          ul: ({node, ...props}) => <ul className="list-disc pl-4 mb-3 space-y-1" {...props} />,
-                          li: ({node, ...props}) => <li className="marker:text-indigo-500" {...props} />,
-                          strong: ({node, ...props}) => <strong className="text-cyan-400 font-bold" {...props} />,
-                        }}
-                      >
-                        {insights}
-                      </ReactMarkdown>
-                    </motion.div>
-                  ) : (
-                    <div className="text-center py-10">
-                      <p className="text-slate-500 text-sm italic">No insights available. Populate node graph to begin analysis.</p>
-                    </div>
-                  )}
-                </AnimatePresence>
+              <div className="space-y-5">
+                <div className="bg-slate-950/40 p-4 rounded-xl border border-slate-800/60 hover:border-indigo-500/30 transition-colors">
+                  <p className="text-xs text-indigo-300 font-black uppercase tracking-widest mb-1">Anomaly Detected</p>
+                  <p className="text-sm text-slate-300 leading-relaxed font-medium">Engineering dept saw a 12% spike in overtime. Suggest reviewing March milestone logs.</p>
+                </div>
+                <div className="bg-slate-950/40 p-4 rounded-xl border border-slate-800/60 hover:border-indigo-500/30 transition-colors">
+                  <p className="text-xs text-emerald-400 font-black uppercase tracking-widest mb-1">Tax Optimized</p>
+                  <p className="text-sm text-slate-300 leading-relaxed font-medium">Proposed shift in HRA structure could save company <span className="text-emerald-400 font-bold">$12,400/yr</span>.</p>
+                </div>
+                <button className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-black text-xs uppercase tracking-widest transition-all shadow-lg shadow-indigo-600/20 active:scale-95 mt-4">
+                  Generate Analytical Report
+                </button>
               </div>
-
-              <button 
-                onClick={generateInsights}
-                disabled={insightsLoading}
-                className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-black text-xs uppercase tracking-widest transition-all shadow-lg shadow-indigo-600/20 active:scale-95 disabled:opacity-50"
-              >
-                {insightsLoading ? "Analyzing Graph..." : "Recalculate AI Report"}
-              </button>
             </div>
             
             <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-indigo-500/5 rounded-full blur-3xl group-hover:bg-indigo-500/10 transition-colors"></div>

@@ -27,8 +27,33 @@ export const getEmployee = async (req: Request, res: Response) => {
 
 export const addEmployee = async (req: Request, res: Response) => {
   try {
+    const { name, email, role, salaryStructure, status } = req.body;
+
+    // Validation
+    if (!name || !email || !role || !salaryStructure || !status) {
+      return res.status(400).json({ message: "Missing required fields: name, email, role, salaryStructure, status" });
+    }
+
+    const validStatuses = ['active', 'inactive', 'on_leave'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ message: `Invalid status. Must be one of: ${validStatuses.join(', ')}` });
+    }
+
+    if (typeof salaryStructure !== 'object' || 
+        typeof salaryStructure.basic !== 'number' || 
+        typeof salaryStructure.hra !== 'number' || 
+        typeof salaryStructure.allowances !== 'number') {
+      return res.status(400).json({ message: "Invalid salaryStructure format. Must include basic, hra, and allowances as numbers." });
+    }
+
     const newEmp = { 
-      ...req.body,
+      name,
+      email,
+      role,
+      salaryStructure,
+      status,
+      department: req.body.department || 'General',
+      bankDetails: req.body.bankDetails || {},
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };

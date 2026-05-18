@@ -111,9 +111,17 @@ export default function EmployeeDetail() {
               <p className="text-cyan-500 font-black text-xs uppercase tracking-[0.2em] mt-2 mb-6">{employee.role}</p>
               
               <div className="flex gap-2 mb-8">
-                <span className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[9px] font-black uppercase tracking-widest flex items-center gap-2">
-                  <span className="w-1 h-1 bg-emerald-500 rounded-full animate-pulse"></span>
-                  Active Node
+                <span className={`px-3 py-1 rounded-full border text-[9px] font-black uppercase tracking-widest flex items-center gap-2 ${
+                  employee.status === 'active' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
+                  employee.status === 'on_leave' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
+                  'bg-slate-500/10 text-slate-400 border-slate-500/20'
+                }`}>
+                  <span className={`w-1 h-1 rounded-full animate-pulse ${
+                    employee.status === 'active' ? 'bg-emerald-500' :
+                    employee.status === 'on_leave' ? 'bg-amber-500' :
+                    'bg-slate-500'
+                  }`}></span>
+                  {employee.status || 'Active'}
                 </span>
                 <span className="px-3 py-1 rounded-full bg-slate-800/50 text-slate-400 border border-slate-700/50 text-[9px] font-black uppercase tracking-widest">
                   Level 03
@@ -193,7 +201,7 @@ export default function EmployeeDetail() {
               <div className="text-right">
                 <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Annual CTC</p>
                 <p className="text-2xl font-black text-white font-mono">
-                  ${((employee.salary?.basic || 0) + (employee.salary?.hra || 0) + (employee.salary?.allowances || 0)).toLocaleString()}
+                  ${((employee.salaryStructure?.basic || 0) + (employee.salaryStructure?.hra || 0) + (employee.salaryStructure?.allowances || 0)).toLocaleString()}
                 </p>
               </div>
             </div>
@@ -204,7 +212,7 @@ export default function EmployeeDetail() {
                   <CreditCard size={40} />
                 </div>
                 <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Core Component</p>
-                <p className="text-2xl font-black text-white font-mono mb-1">${employee.salary?.basic?.toLocaleString() || '0'}</p>
+                <p className="text-2xl font-black text-white font-mono mb-1">${employee.salaryStructure?.basic?.toLocaleString() || '0'}</p>
                 <p className="text-[9px] font-black text-slate-600 uppercase tracking-[0.15em]">Base Allocation (BASIC)</p>
               </div>
               <div className="p-6 rounded-3xl bg-slate-900/40 border border-slate-800/40 relative overflow-hidden group hover:border-indigo-500/30 transition-all">
@@ -212,7 +220,7 @@ export default function EmployeeDetail() {
                   <Building2 size={40} />
                 </div>
                 <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Facility Credit</p>
-                <p className="text-2xl font-black text-white font-mono mb-1">${employee.salary?.hra?.toLocaleString() || '0'}</p>
+                <p className="text-2xl font-black text-white font-mono mb-1">${employee.salaryStructure?.hra?.toLocaleString() || '0'}</p>
                 <p className="text-[9px] font-black text-slate-600 uppercase tracking-[0.15em]">Housing Reallocation (HRA)</p>
               </div>
               <div className="p-6 rounded-3xl bg-slate-900/40 border border-slate-800/40 relative overflow-hidden group hover:border-violet-500/30 transition-all">
@@ -220,7 +228,7 @@ export default function EmployeeDetail() {
                   <Clock size={40} />
                 </div>
                 <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Utility Credits</p>
-                <p className="text-2xl font-black text-white font-mono mb-1">${employee.salary?.allowances?.toLocaleString() || '0'}</p>
+                <p className="text-2xl font-black text-white font-mono mb-1">${employee.salaryStructure?.allowances?.toLocaleString() || '0'}</p>
                 <p className="text-[9px] font-black text-slate-600 uppercase tracking-[0.15em]">Subsistence Allocation</p>
               </div>
             </div>

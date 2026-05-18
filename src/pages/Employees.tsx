@@ -143,9 +143,17 @@ export default function Employees() {
                   </td>
                   <td className="px-8 py-6">
                     <div className="flex justify-center">
-                      <span className="flex items-center gap-2 px-3 py-1 text-[9px] font-black uppercase tracking-widest rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.05)]">
-                        <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.6)]"></span>
-                        Active
+                      <span className={`flex items-center gap-2 px-3 py-1 text-[9px] font-black uppercase tracking-widest rounded-full border shadow-[0_0_10px_rgba(16,185,129,0.05)] ${
+                        emp.status === 'active' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 
+                        emp.status === 'on_leave' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
+                        'bg-slate-500/10 text-slate-400 border-slate-500/20'
+                      }`}>
+                        <span className={`w-1.5 h-1.5 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.6)] ${
+                          emp.status === 'active' ? 'bg-emerald-500' :
+                          emp.status === 'on_leave' ? 'bg-amber-500' :
+                          'bg-slate-500'
+                        }`}></span>
+                        {emp.status || 'Active'}
                       </span>
                     </div>
                   </td>
@@ -229,12 +237,12 @@ export default function Employees() {
                     role: formData.get('role'),
                     department: formData.get('department'),
                     joiningDate: formData.get('joiningDate'),
-                    salary: {
+                    salaryStructure: {
                       basic: Number(formData.get('basic')),
                       hra: Number(formData.get('hra')),
                       allowances: Number(formData.get('allowances')),
                     },
-                    status: 'active'
+                    status: formData.get('status') || 'active'
                   };
 
                   try {
@@ -291,6 +299,21 @@ export default function Employees() {
                       className="w-full px-4 py-3 bg-[#05060a] border border-slate-800 rounded-xl focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500/40 outline-none transition-all text-slate-200 placeholder:text-slate-800 text-sm font-bold uppercase"
                     />
                   </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Current Status</label>
+                    <select 
+                      name="status"
+                      required
+                      className="w-full px-4 py-3 bg-[#05060a] border border-slate-800 rounded-xl focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500/40 outline-none transition-all text-slate-200 text-sm font-bold uppercase appearance-none"
+                    >
+                      <option value="active">Active</option>
+                      <option value="inactive">Inactive</option>
+                      <option value="on_leave">On Leave</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-6">
                   <div className="space-y-2">
                     <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Deployment Date</label>
                     <input 

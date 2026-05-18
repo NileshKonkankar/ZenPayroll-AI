@@ -8,6 +8,7 @@
         "name": { "type": "string" },
         "email": { "type": "string", "format": "email" },
         "role": { "type": "string", "enum": ["ADMIN", "HR", "EMPLOYEE"] },
+        "status": { "type": "string", "enum": ["active", "inactive", "on_leave"], "description": "Current employment status" },
         "salaryStructure": {
           "type": "object",
           "properties": {
@@ -27,7 +28,7 @@
         "createdAt": { "type": "string", "format": "date-time" },
         "updatedAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["name", "email", "role", "salaryStructure"]
+      "required": ["name", "email", "role", "salaryStructure", "status"]
     },
     "PayrollRecord": {
       "title": "Payroll Record",

@@ -58,14 +58,15 @@ service cloud.firestore {
     }
 
     function isValidEmployee(data) {
-      return data.keys().hasAll(['name', 'email', 'role', 'salary'])
+      return data.keys().hasAll(['name', 'email', 'role', 'salaryStructure', 'status'])
         && data.name is string && data.name.size() > 0 && data.name.size() <= 200
         && data.email is string && data.email.size() <= 200
         && data.role is string
-        && data.salary is map
-        && data.salary.basic is number && data.salary.basic >= 0
-        && data.salary.hra is number && data.salary.hra >= 0
-        && data.salary.allowances is number && data.salary.allowances >= 0;
+        && data.status is string && data.status in ['active', 'inactive', 'on_leave']
+        && data.salaryStructure is map
+        && data.salaryStructure.basic is number && data.salaryStructure.basic >= 0
+        && data.salaryStructure.hra is number && data.salaryStructure.hra >= 0
+        && data.salaryStructure.allowances is number && data.salaryStructure.allowances >= 0;
     }
 
     function isValidPayrollRecord(data) {
@@ -88,7 +89,7 @@ service cloud.firestore {
         && isValidEmployee(incoming())
         && incoming().email == existing().email // Immutable email
         && (
-          incoming().diff(existing()).affectedKeys().hasOnly(['name', 'role', 'salary', 'department', 'updatedAt'])
+          incoming().diff(existing()).affectedKeys().hasOnly(['name', 'role', 'salaryStructure', 'status', 'department', 'updatedAt'])
         );
       
       allow delete: if isStaff();

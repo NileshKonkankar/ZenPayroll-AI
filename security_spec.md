@@ -18,7 +18,7 @@
 8. **Resource Poisoning**: Uploading a 1MB string as an employee name.
 9. **State Shortcutting**: Skipping the "processed" status in a multi-step payroll run.
 10. **Shadow Key**: Adding `secret_bonus: 1000` to a payroll result.
-11. **Time Travel**: Manually setting `createdAt` to a year ago.
+11. **Invalid Status**: Setting status to 'fired' or any value outside 'active', 'inactive', 'on_leave'.
 12. **Unauthorized Deletion**: HR deleting an Admin record.
 
 ## 3. Test Runner (Draft)
