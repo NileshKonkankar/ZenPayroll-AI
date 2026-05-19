@@ -5,9 +5,18 @@ import firebaseConfig from "../firebase-applet-config.json";
 if (!admin.apps.length) {
   const projectId = process.env.VITE_FIREBASE_PROJECT_ID || firebaseConfig.projectId;
   console.log(`[Firebase Admin] Initializing with Project ID: ${projectId}`);
-  admin.initializeApp({
-    projectId: projectId,
-  });
+  
+  try {
+    admin.initializeApp({
+      projectId: projectId,
+      credential: admin.credential.applicationDefault(),
+    });
+  } catch (error) {
+    console.warn(`[Firebase Admin] Failed to initialize with applicationDefault, falling back:`, error);
+    admin.initializeApp({
+      projectId: projectId,
+    });
+  }
 }
 
 const app = admin.apps[0]!;

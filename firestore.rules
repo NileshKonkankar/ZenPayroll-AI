@@ -105,8 +105,9 @@ service cloud.firestore {
     }
 
     match /admins/{adminId} {
-      allow read: if isStaff();
-      allow create: if isAdmin() || (isSignedIn() && !exists(/databases/$(database)/documents/admins/FIRST_ADMIN_ID)); // Bootstrap logic placeholder
+      allow get: if isSignedIn() && (isOwner(adminId) || isStaff());
+      allow list: if isStaff();
+      allow create: if isAdmin() || !exists(/databases/$(database)/documents/admins/bootstrap_admin);
       allow update, delete: if isAdmin();
     }
 

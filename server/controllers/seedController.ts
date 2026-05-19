@@ -76,8 +76,14 @@ export const seedData = async (req: Request, res: Response) => {
 
     await batch.commit();
     res.json({ message: "Seeding successful", count: SEED_EMPLOYEES.length });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Seeding Error:", error);
-    res.status(500).json({ message: "Seeding failed", error });
+    res.status(500).json({ 
+      message: "Seeding failed", 
+      error: error.message,
+      code: error.code,
+      details: error.details,
+      note: "Check if the Firestore database is provisioned and the service account has permissions."
+    });
   }
 };
