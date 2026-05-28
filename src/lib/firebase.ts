@@ -1,7 +1,9 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { getFirestore, doc, getDocFromServer } from 'firebase/firestore';
-import localConfig from '../../firebase-applet-config.json';
+import localConfigImport from '../../firebase-applet-config.json';
+
+const localConfig = localConfigImport as any;
 
 // Configuration prioritized by environment variables (for GitHub/CI)
 // falls back to gitignored local config for local development.

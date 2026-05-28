@@ -1,6 +1,8 @@
 import admin from "firebase-admin";
 import { getFirestore } from "firebase-admin/firestore";
-import firebaseConfig from "../firebase-applet-config.json";
+import firebaseConfigImport from "../firebase-applet-config.json";
+
+const firebaseConfig = firebaseConfigImport as any;
 
 if (!admin.apps.length) {
   const projectId = process.env.VITE_FIREBASE_PROJECT_ID || firebaseConfig.projectId;
