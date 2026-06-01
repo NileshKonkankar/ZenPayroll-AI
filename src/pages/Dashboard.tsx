@@ -26,6 +26,7 @@ import {
 } from 'recharts';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import AuditLog from '@/components/AuditLog';
 
 const data = [
   { name: 'Jan', cost: 45000 },
@@ -258,40 +259,7 @@ export default function Dashboard() {
       </div>
       
       {/* Bottom Ledger Activity */}
-      <div className="bg-card-bg border border-slate-800/60 rounded-2xl p-6 shadow-xl">
-        <div className="flex items-center justify-between mb-6">
-           <h5 className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
-             <div className="w-1.5 h-1.5 bg-slate-500 rounded-full animate-pulse"></div>
-             Recent Ledger Activity
-           </h5>
-           <span className="text-[10px] font-bold text-slate-600 cursor-pointer hover:text-cyan-400 transition-colors uppercase tracking-widest">View Full Audit Log</span>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          <ActivityItem status="cyan" title="Payslip Gen: Alex Rivera" time="2 mins ago" />
-          <ActivityItem status="emerald" title="Salary Credit: Marketing Team" time="14 mins ago" />
-          <ActivityItem status="orange" title="Bank Detail Update: Sarah Chen" time="1 hour ago" />
-          <ActivityItem status="indigo" title="AI Optimization Triggered" time="3 hours ago" />
-        </div>
-      </div>
+      <AuditLog />
     </div>
   );
 }
-
-const ActivityItem = ({ status, title, time }: { status: string, title: string, time: string }) => {
-  const statusColors: any = {
-    cyan: 'bg-cyan-500',
-    emerald: 'bg-emerald-500',
-    orange: 'bg-orange-500',
-    indigo: 'bg-indigo-500'
-  };
-  
-  return (
-    <div className="flex items-center space-x-4 group cursor-default">
-      <div className={cn("w-2 h-2 rounded-full", statusColors[status])}></div>
-      <div className="flex-1 min-w-0">
-        <p className="text-[11px] text-slate-200 font-bold group-hover:text-white transition-colors truncate uppercase tracking-tighter">{title}</p>
-        <p className="text-[9px] text-slate-500 font-mono font-bold tracking-widest uppercase">{time}</p>
-      </div>
-    </div>
-  );
-};

@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { adminDb } from '../firebaseAdmin';
+import { logAction } from '../utils/auditLogger';
 
 const COLLECTION = 'employees';
 
@@ -58,6 +59,7 @@ export const addEmployee = async (req: Request, res: Response) => {
       updatedAt: new Date().toISOString()
     };
     const docRef = await adminDb.collection(COLLECTION).add(newEmp);
+    await logAction('Create Employee', req, `Created employee: ${name} (${email}) as ${role}`);
     res.status(201).json({ id: docRef.id, ...newEmp });
   } catch (error) {
     res.status(500).json({ message: "Failed to add employee", error });
@@ -66,7 +68,15 @@ export const addEmployee = async (req: Request, res: Response) => {
 
 export const deleteEmployee = async (req: Request, res: Response) => {
   try {
-    await adminDb.collection(COLLECTION).doc(req.params.id).delete();
+    const id = req.params.id;
+    const empDoc = await adminDb.collection(COLLECTION).doc(id).get();
+    let detail = `Deleted employee ID: ${id}`;
+    if (empDoc.exists) {
+      const data = empDoc.data() as any;
+      detail = `Deleted employee: ${data.name || ''} (${data.email || ''}, ID: ${id})`;
+    }
+    await adminDb.collection(COLLECTION).doc(id).delete();
+    await logAction('Delete Employee', req, detail);
     res.status(204).send();
   } catch (error) {
     res.status(500).json({ message: "Failed to delete employee", error });

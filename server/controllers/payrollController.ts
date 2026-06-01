@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { calculateNetSalary } from '../utils/payrollCalculator';
 import { adminDb } from '../firebaseAdmin';
+import { logAction } from '../utils/auditLogger';
 
 const COLLECTION = 'payrollRecords';
 
@@ -30,6 +31,7 @@ export const processPayroll = async (req: Request, res: Response) => {
     };
     
     const docRef = await adminDb.collection(COLLECTION).add(payrollRecord);
+    await logAction('Process Payroll', req, `Processed payroll for ${empData.name || employeeId} (${month}). Net: $${calculation.netSalary}`);
     res.status(201).json({ id: docRef.id, ...payrollRecord });
   } catch (error) {
     console.error("Payroll Error:", error);
@@ -71,6 +73,7 @@ export const processFullBatch = async (req: Request, res: Response) => {
     });
 
     await batch.commit();
+    await logAction('Process Batch Payroll', req, `Processed batch payroll of ${processedRecords.length} records (${month})`);
     res.status(200).json({ 
       message: `Processed ${processedRecords.length} records successfully`, 
       records: processedRecords 

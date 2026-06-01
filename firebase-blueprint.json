@@ -57,6 +57,18 @@
         "role": { "type": "string", "enum": ["ADMIN", "HR"] }
       },
       "required": ["uid", "role"]
+    },
+    "AuditLog": {
+      "title": "Audit Log",
+      "description": "System actions log containing action type, user who performed it, timestamp, and metadata",
+      "type": "object",
+      "properties": {
+        "action": { "type": "string" },
+        "user": { "type": "string" },
+        "details": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["action", "user", "timestamp"]
     }
   },
   "firestore": {
@@ -71,6 +83,10 @@
     "admins/{adminId}": {
       "schema": "Admin",
       "description": "Restricted admin list"
+    },
+    "auditLogs/{logId}": {
+      "schema": "AuditLog",
+      "description": "System action logs"
     }
   }
 }

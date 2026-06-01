@@ -77,6 +77,13 @@ service cloud.firestore {
         && data.processedAt is string; // Simplified for demo, usually timestamp
     }
 
+    function isValidAuditLog(data) {
+      return data.keys().hasAll(['action', 'user', 'timestamp'])
+        && data.action is string && data.action.size() <= 200
+        && data.user is string && data.user.size() <= 200
+        && data.timestamp is string;
+    }
+
     // --- Collections ---
 
     match /employees/{employeeId} {
@@ -109,6 +116,12 @@ service cloud.firestore {
       allow list: if isStaff();
       allow create: if isAdmin() || !exists(/databases/$(database)/documents/admins/bootstrap_admin);
       allow update, delete: if isAdmin();
+    }
+
+    match /auditLogs/{logId} {
+      allow get, list: if isStaff();
+      allow create: if isStaff() && isValidAuditLog(incoming()) && isValidId(logId);
+      allow update, delete: if false; // Audit logs are immutable and permanent
     }
 
     match /test/{docId} {
