@@ -25,7 +25,7 @@ import {
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import AuditLog from '@/components/AuditLog';
-import { db } from '@/lib/firebase';
+import { db, handleFirestoreError, OperationType } from '@/lib/firebase';
 import { collection, onSnapshot } from 'firebase/firestore';
 
 const DEFAULT_MOCK_DATA = [
@@ -89,6 +89,7 @@ export default function Dashboard() {
     }, (error) => {
       console.error("Failed to stream employees", error);
       setLoadingEmployees(false);
+      handleFirestoreError(error, OperationType.LIST, 'employees');
     });
     return unsub;
   }, []);
@@ -101,6 +102,7 @@ export default function Dashboard() {
     }, (error) => {
       console.error("Failed to stream payroll records", error);
       setLoadingPayroll(false);
+      handleFirestoreError(error, OperationType.LIST, 'payrollRecords');
     });
     return unsub;
   }, []);

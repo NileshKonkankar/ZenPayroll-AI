@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { db } from '@/lib/firebase';
+import { db, handleFirestoreError, OperationType } from '@/lib/firebase';
 import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
 import { motion } from 'framer-motion';
 import { Activity, User, Clock, Terminal, AlertCircle } from 'lucide-react';
@@ -38,6 +38,7 @@ export default function AuditLog() {
         console.error('Error fetching audit logs:', error);
         setErrorString('Permission denied or connection issue');
         setLoading(false);
+        handleFirestoreError(error, OperationType.LIST, 'auditLogs');
       }
     );
 

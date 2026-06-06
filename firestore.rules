@@ -28,13 +28,15 @@ service cloud.firestore {
     function isStaff() {
       return isSignedIn() && (
         exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
-        request.auth.token.email == 'KonkankarNilesh@gmail.com'
+        request.auth.token.email == 'KonkankarNilesh@gmail.com' ||
+        request.auth.token.email == 'konkankarnilesh@gmail.com'
       );
     }
 
     function isAdmin() {
       return isStaff() && (
         request.auth.token.email == 'KonkankarNilesh@gmail.com' ||
+        request.auth.token.email == 'konkankarnilesh@gmail.com' ||
         (exists(/databases/$(database)/documents/admins/$(request.auth.uid)) && 
          get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.role == 'ADMIN')
       );
