@@ -25,8 +25,10 @@ import {
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import AuditLog from '@/components/AuditLog';
+import ComplianceWidget from '@/components/ComplianceWidget';
 import { db, handleFirestoreError, OperationType } from '@/lib/firebase';
-import { collection, onSnapshot } from 'firebase/firestore';
+import { collection, onSnapshot, query, where, doc } from 'firebase/firestore';
+import { useAuth } from '../components/AuthProvider';
 
 const DEFAULT_MOCK_DATA = [
   { name: 'Jan 2026', cost: 45000, isMock: true },
@@ -73,6 +75,7 @@ const StatCard = ({ title, value, icon: Icon, trend, trendValue, color, isAccent
 );
 
 export default function Dashboard() {
+  const { role, user } = useAuth();
   const [isSeeding, setIsSeeding] = useState(false);
   const [seedResult, setSeedResult] = useState<{success?: boolean, message?: string} | null>(null);
 
@@ -82,6 +85,25 @@ export default function Dashboard() {
   const [loadingEmployees, setLoadingEmployees] = useState(true);
 
   useEffect(() => {
+    if (!role || !user) return;
+
+    if (role !== 'ADMIN' && role !== 'HR') {
+      // Standard employee fetches only their own employee profile
+      const unsub = onSnapshot(doc(db, 'employees', user.uid), (snapshot) => {
+        if (snapshot.exists()) {
+          setEmployees([{ id: snapshot.id, ...snapshot.data() }]);
+        } else {
+          setEmployees([]);
+        }
+        setLoadingEmployees(false);
+      }, (error) => {
+        console.error("Failed to stream own employee profile", error);
+        setLoadingEmployees(false);
+        handleFirestoreError(error, OperationType.GET, `employees/${user.uid}`);
+      });
+      return unsub;
+    }
+
     const unsub = onSnapshot(collection(db, 'employees'), (snapshot) => {
       const list = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setEmployees(list);
@@ -92,9 +114,26 @@ export default function Dashboard() {
       handleFirestoreError(error, OperationType.LIST, 'employees');
     });
     return unsub;
-  }, []);
+  }, [role, user]);
 
   useEffect(() => {
+    if (!role || !user) return;
+
+    if (role !== 'ADMIN' && role !== 'HR') {
+      // Standard employee queries only their own payroll records
+      const q = query(collection(db, 'payrollRecords'), where('employeeId', '==', user.uid));
+      const unsub = onSnapshot(q, (snapshot) => {
+        const list = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setPayrollRecords(list);
+        setLoadingPayroll(false);
+      }, (error) => {
+        console.error("Failed to stream payroll records", error);
+        setLoadingPayroll(false);
+        handleFirestoreError(error, OperationType.LIST, 'payrollRecords');
+      });
+      return unsub;
+    }
+
     const unsub = onSnapshot(collection(db, 'payrollRecords'), (snapshot) => {
       const list = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setPayrollRecords(list);
@@ -105,7 +144,7 @@ export default function Dashboard() {
       handleFirestoreError(error, OperationType.LIST, 'payrollRecords');
     });
     return unsub;
-  }, []);
+  }, [role, user]);
 
   const handleSeed = async () => {
     setIsSeeding(true);
@@ -366,9 +405,11 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+
+      <ComplianceWidget />
       
       {/* Bottom Ledger Activity */}
-      <AuditLog />
+      {(role === 'ADMIN' || role === 'HR') && <AuditLog />}
     </div>
   );
 }

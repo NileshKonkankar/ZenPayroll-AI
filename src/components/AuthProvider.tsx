@@ -31,7 +31,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const adminDoc = await getDoc(doc(db, 'admins', u.uid));
           if (adminDoc.exists()) {
             setRole(adminDoc.data().role);
-          } else if (u.email === 'KonkankarNilesh@gmail.com') {
+          } else if (u.email && u.email.toLowerCase() === 'konkankarnilesh@gmail.com') {
             setRole('ADMIN');
           } else {
             setRole('EMPLOYEE');
