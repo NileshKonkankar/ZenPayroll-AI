@@ -10,6 +10,7 @@ import Payroll from './pages/Payroll';
 import Settings from './pages/Settings';
 import Login from './pages/Login';
 import { Loader2 } from 'lucide-react';
+import AutoLogout from './components/AutoLogout';
 
 function AppRoutes() {
   const { user, loading } = useAuth();
@@ -45,6 +46,7 @@ export default function App() {
     <BrowserRouter>
       <AuthProvider>
         <AppRoutes />
+        <AutoLogout />
       </AuthProvider>
     </BrowserRouter>
   );
