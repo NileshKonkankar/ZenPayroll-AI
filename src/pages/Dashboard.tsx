@@ -7,6 +7,7 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   BarChart3,
+  PieChart as LucidePieChart,
   Sparkles,
   ArrowRight,
   Database,
@@ -20,7 +21,15 @@ import {
   YAxis, 
   CartesianGrid, 
   Tooltip, 
-  ResponsiveContainer
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
+  AreaChart,
+  Area,
+  LineChart,
+  Line
 } from 'recharts';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -83,6 +92,7 @@ export default function Dashboard() {
   const [employees, setEmployees] = useState<any[]>([]);
   const [loadingPayroll, setLoadingPayroll] = useState(true);
   const [loadingEmployees, setLoadingEmployees] = useState(true);
+  const [trendType, setTrendType] = useState<'bar' | 'area' | 'line'>('bar');
 
   useEffect(() => {
     if (!role || !user) return;
@@ -213,6 +223,44 @@ export default function Dashboard() {
     };
   };
 
+  const getProcessedDepartmentData = () => {
+    const defaultDeptData = [
+      { name: 'Engineering', value: 127000, color: '#22d3ee' },
+      { name: 'Product', value: 144000, color: '#6366f1' },
+      { name: 'Design', value: 110000, color: '#ec4899' },
+      { name: 'Operations', value: 95000, color: '#f59e0b' },
+      { name: 'Marketing', value: 82000, color: '#10b981' }
+    ];
+
+    if (employees.length === 0) {
+      return defaultDeptData;
+    }
+
+    const deptMap: Record<string, number> = {};
+    employees.forEach(emp => {
+      const dept = emp.department || emp.role || 'Other';
+      const basic = Number(emp.salaryStructure?.basic || emp.salary?.basic || 0);
+      const hra = Number(emp.salaryStructure?.hra || emp.salary?.hra || 0);
+      const allowances = Number(emp.salaryStructure?.allowances || emp.salary?.allowances || 0);
+      const totalSalary = basic + hra + allowances;
+
+      // Group by department name (capitalized nicely)
+      const deptName = dept.trim().charAt(0).toUpperCase() + dept.trim().slice(1).toLowerCase();
+      deptMap[deptName] = (deptMap[deptName] || 0) + (totalSalary || 60000); 
+    });
+
+    if (employees.length <= 1) {
+      return defaultDeptData;
+    }
+
+    const colors = ['#22d3ee', '#6366f1', '#ec4899', '#f59e0b', '#10b981', '#a855f7', '#3b82f6'];
+    return Object.entries(deptMap).map(([name, value], idx) => ({
+      name,
+      value,
+      color: colors[idx % colors.length]
+    }));
+  };
+
   const { data: displayData, isFallback } = getProcessedChartData();
 
   // Dynamic values
@@ -308,63 +356,241 @@ export default function Dashboard() {
       </div>
 
       <div className="grid grid-cols-12 gap-8">
-        <div className="col-span-12 lg:col-span-8 bg-card-bg p-8 rounded-3xl border border-slate-800/60 shadow-xl flex flex-col min-h-[450px]">
-          <div className="flex items-center justify-between mb-10">
-            <h3 className="text-lg font-bold text-white flex items-center gap-2">
-              <BarChart3 size={20} className="text-cyan-400" />
-              Payroll Expenditure Trend
-            </h3>
-            <div className="flex bg-slate-950 p-1 rounded-xl border border-slate-800">
-              <button className="px-4 py-1.5 rounded-lg text-xs font-bold text-slate-500 hover:text-slate-200 transition-colors">6M</button>
-              <button className="px-4 py-1.5 rounded-lg text-xs font-bold bg-cyan-600 text-white shadow-lg shadow-cyan-600/20">1Y</button>
+        {/* Left Column: Payroll Expenditure Trend (col-span-12 lg:col-span-8) */}
+        <div className="col-span-12 lg:col-span-8 bg-card-bg p-8 rounded-3xl border border-slate-800/60 shadow-xl flex flex-col min-h-[480px]">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10">
+            <div>
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                <BarChart3 size={20} className="text-cyan-400" />
+                Payroll Expenditure Trend
+              </h3>
+              <p className="text-slate-500 text-xs mt-1">Monthly disbursement history across all registered personnel</p>
+            </div>
+            {/* Interactive chart type selection */}
+            <div className="flex bg-slate-950 p-1 rounded-xl border border-slate-850 self-start sm:self-auto">
+              <button 
+                onClick={() => setTrendType('bar')}
+                className={cn(
+                  "px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer",
+                  trendType === 'bar' ? "bg-cyan-600 text-white shadow-md shadow-cyan-600/10" : "text-slate-500 hover:text-slate-350"
+                )}
+              >
+                Bar
+              </button>
+              <button 
+                onClick={() => setTrendType('area')}
+                className={cn(
+                  "px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer",
+                  trendType === 'area' ? "bg-cyan-600 text-white shadow-md shadow-cyan-600/10" : "text-slate-500 hover:text-slate-350"
+                )}
+              >
+                Area
+              </button>
+              <button 
+                onClick={() => setTrendType('line')}
+                className={cn(
+                  "px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all cursor-pointer",
+                  trendType === 'line' ? "bg-cyan-600 text-white shadow-md shadow-cyan-600/10" : "text-slate-500 hover:text-slate-350"
+                )}
+              >
+                Line
+              </button>
             </div>
           </div>
+          
           {isFallback && (
             <div className="mb-6 p-3 bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 rounded-xl text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 animate-pulse">
               <AlertCircle size={14} className="flex-shrink-0" />
               Showing simulated projection models. Execute a disbursement run in the Payroll cycle to fetch real-time ledger data.
             </div>
           )}
+          
           <div className="flex-1 w-full min-h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={displayData}>
-                <defs>
-                  <linearGradient id="colorBarCost" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#22d3ee" stopOpacity={0.8}/>
-                    <stop offset="100%" stopColor="#0891b2" stopOpacity={0.2}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1e293b" />
-                <XAxis 
-                  dataKey="name" 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{fill: '#475569', fontSize: 10, fontWeight: 700}} 
-                  dy={10} 
-                />
-                <YAxis 
-                   axisLine={false} 
-                   tickLine={false} 
-                   tick={{fill: '#475569', fontSize: 10, fontWeight: 700}} 
-                   tickFormatter={(val) => `$${val >= 1000 ? `${(val / 1000).toFixed(0)}k` : val}`}
-                />
-                <Tooltip 
-                  cursor={{ fill: 'rgba(30, 41, 59, 0.15)' }}
-                  contentStyle={{ backgroundColor: '#0f172a', borderRadius: '12px', border: '1px solid #1e293b', padding: '12px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.5)' }}
-                  itemStyle={{ color: '#22d3ee', fontWeight: 'bold' }}
-                  formatter={(value: any) => [`$${Number(value).toLocaleString(undefined, { minimumFractionDigits: 2 })}`, 'Payroll Disbursement']}
-                />
-                <Bar 
-                  dataKey="cost" 
-                  fill="url(#colorBarCost)" 
-                  radius={[6, 6, 0, 0]} 
-                  animationDuration={1500}
-                />
-              </BarChart>
+              {trendType === 'bar' ? (
+                <BarChart data={displayData}>
+                  <defs>
+                    <linearGradient id="colorBarCost" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#22d3ee" stopOpacity={0.8}/>
+                      <stop offset="100%" stopColor="#0891b2" stopOpacity={0.2}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1e293b" />
+                  <XAxis 
+                    dataKey="name" 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{fill: '#475569', fontSize: 10, fontWeight: 700}} 
+                    dy={10} 
+                  />
+                  <YAxis 
+                     axisLine={false} 
+                     tickLine={false} 
+                     tick={{fill: '#475569', fontSize: 10, fontWeight: 700}} 
+                     tickFormatter={(val) => `$${val >= 1000 ? `${(val / 1000).toFixed(0)}k` : val}`}
+                  />
+                  <Tooltip 
+                    cursor={{ fill: 'rgba(30, 41, 59, 0.15)' }}
+                    contentStyle={{ backgroundColor: '#0f172a', borderRadius: '12px', border: '1px solid #1e293b', padding: '12px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.5)' }}
+                    itemStyle={{ color: '#22d3ee', fontWeight: 'bold' }}
+                    formatter={(value: any) => [`$${Number(value).toLocaleString(undefined, { minimumFractionDigits: 2 })}`, 'Payroll Disbursement']}
+                  />
+                  <Bar 
+                    dataKey="cost" 
+                    fill="url(#colorBarCost)" 
+                    radius={[6, 6, 0, 0]} 
+                    animationDuration={1000}
+                  />
+                </BarChart>
+              ) : trendType === 'area' ? (
+                <AreaChart data={displayData}>
+                  <defs>
+                    <linearGradient id="colorAreaCost" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#22d3ee" stopOpacity={0.4}/>
+                      <stop offset="100%" stopColor="#22d3ee" stopOpacity={0.0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1e293b" />
+                  <XAxis 
+                    dataKey="name" 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{fill: '#475569', fontSize: 10, fontWeight: 700}} 
+                    dy={10} 
+                  />
+                  <YAxis 
+                     axisLine={false} 
+                     tickLine={false} 
+                     tick={{fill: '#475569', fontSize: 10, fontWeight: 700}} 
+                     tickFormatter={(val) => `$${val >= 1000 ? `${(val / 1000).toFixed(0)}k` : val}`}
+                  />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: '#0f172a', borderRadius: '12px', border: '1px solid #1e293b', padding: '12px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.5)' }}
+                    itemStyle={{ color: '#22d3ee', fontWeight: 'bold' }}
+                    formatter={(value: any) => [`$${Number(value).toLocaleString(undefined, { minimumFractionDigits: 2 })}`, 'Payroll Disbursement']}
+                  />
+                  <Area 
+                    type="monotone" 
+                    dataKey="cost" 
+                    stroke="#22d3ee" 
+                    strokeWidth={3} 
+                    fillOpacity={1} 
+                    fill="url(#colorAreaCost)" 
+                    animationDuration={1000} 
+                  />
+                </AreaChart>
+              ) : (
+                <LineChart data={displayData}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1e293b" />
+                  <XAxis 
+                    dataKey="name" 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{fill: '#475569', fontSize: 10, fontWeight: 700}} 
+                    dy={10} 
+                  />
+                  <YAxis 
+                     axisLine={false} 
+                     tickLine={false} 
+                     tick={{fill: '#475569', fontSize: 10, fontWeight: 700}} 
+                     tickFormatter={(val) => `$${val >= 1000 ? `${(val / 1000).toFixed(0)}k` : val}`}
+                  />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: '#0f172a', borderRadius: '12px', border: '1px solid #1e293b', padding: '12px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.5)' }}
+                    itemStyle={{ color: '#22d3ee', fontWeight: 'bold' }}
+                    formatter={(value: any) => [`$${Number(value).toLocaleString(undefined, { minimumFractionDigits: 2 })}`, 'Payroll Disbursement']}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="cost" 
+                    stroke="#22d3ee" 
+                    strokeWidth={4} 
+                    activeDot={{ r: 8 }} 
+                    dot={{ stroke: '#0f172a', strokeWidth: 2, r: 5, fill: '#22d3ee' }} 
+                    animationDuration={1000} 
+                  />
+                </LineChart>
+              )}
             </ResponsiveContainer>
           </div>
         </div>
 
+        {/* Right Column: Departmental Salary Distribution (col-span-12 lg:col-span-4) */}
+        <div className="col-span-12 lg:col-span-4 bg-card-bg p-8 rounded-3xl border border-slate-800/60 shadow-xl flex flex-col min-h-[480px]">
+          <div className="mb-6">
+            <h3 className="text-lg font-bold text-white flex items-center gap-2">
+              <LucidePieChart size={20} className="text-indigo-400" />
+              Department Salary Distribution
+            </h3>
+            <p className="text-slate-500 text-xs mt-1">Remuneration structure breakdown per operational node</p>
+          </div>
+
+          <div className="flex-1 flex flex-col justify-center">
+            {/* Center-labeled Donut Chart */}
+            <div className="relative w-full h-[220px] flex items-center justify-center">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={getProcessedDepartmentData()}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={65}
+                    outerRadius={85}
+                    paddingAngle={4}
+                    dataKey="value"
+                  >
+                    {getProcessedDepartmentData().map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: '#0f172a', borderRadius: '12px', border: '1px solid #1e293b', padding: '12px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.5)' }}
+                    itemStyle={{ color: '#ffffff', fontWeight: 'bold' }}
+                    formatter={(value: any) => [`$${Number(value).toLocaleString()}`, 'Total Allocation']}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+
+              {/* Centered Total Label */}
+              <div className="absolute flex flex-col items-center justify-center text-center pointer-events-none">
+                <span className="text-[9px] text-slate-500 font-black uppercase tracking-widest leading-none mb-1">TOTAL BUDGET</span>
+                <span className="text-lg font-black text-white font-mono leading-none">
+                  ${getProcessedDepartmentData().reduce((acc, curr) => acc + curr.value, 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                </span>
+                <span className="text-[8px] text-indigo-400 font-bold uppercase tracking-widest mt-1">BASE STRUCT</span>
+              </div>
+            </div>
+
+            {/* Custom high-polish legend list */}
+            <div className="grid grid-cols-2 gap-x-4 gap-y-3 mt-6 border-t border-slate-800/50 pt-6">
+              {getProcessedDepartmentData().map((entry) => {
+                const totalVal = getProcessedDepartmentData().reduce((acc, curr) => acc + curr.value, 0);
+                const percent = Math.round((entry.value / totalVal) * 100);
+                return (
+                  <div key={entry.name} className="flex items-start gap-2 min-w-0">
+                    <span className="w-2 h-2 rounded-full mt-1.5 flex-shrink-0" style={{ backgroundColor: entry.color }} />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[10px] font-black text-slate-300 uppercase truncate leading-none mb-1">{entry.name}</p>
+                      <p className="text-[9px] font-mono font-bold text-slate-500">
+                        {percent}% &bull; ${(entry.value / 1000).toFixed(0)}k
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Row 2: Compliance Widget & AI Smart Insights Side-by-Side */}
+      <div className="grid grid-cols-12 gap-8">
+        {/* ComplianceWidget takes col-span-12 lg:col-span-8 */}
+        <div className="col-span-12 lg:col-span-8">
+          <ComplianceWidget />
+        </div>
+
+        {/* AI insights & Chat tool takes col-span-12 lg:col-span-4 */}
         <div className="col-span-12 lg:col-span-4 flex flex-col gap-6">
           <div className="bg-gradient-to-br from-indigo-950/40 via-card-bg to-card-bg border border-indigo-500/20 rounded-3xl p-8 flex-1 shadow-2xl relative overflow-hidden group">
             <div className="relative z-10">
@@ -406,8 +632,6 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <ComplianceWidget />
-      
       {/* Bottom Ledger Activity */}
       {(role === 'ADMIN' || role === 'HR') && <AuditLog />}
     </div>
