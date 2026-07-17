@@ -3,6 +3,7 @@ import { Calculator, CheckCircle, ArrowRight, History, PieChart, FileText, FileC
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../lib/utils';
 import { useAuth } from '../components/AuthProvider';
+import PayrollVisualization from '../components/PayrollVisualization';
 
 export default function Payroll() {
   const { getToken } = useAuth();
@@ -383,6 +384,9 @@ export default function Payroll() {
           </div>
         </div>
       </div>
+
+      {/* Interactive Financial Analytics Dashboard */}
+      <PayrollVisualization employees={employees} history={history} />
     </div>
   );
 }
