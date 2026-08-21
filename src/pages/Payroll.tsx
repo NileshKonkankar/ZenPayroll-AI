@@ -13,6 +13,7 @@ export default function Payroll() {
   const [error, setError] = useState<string | null>(null);
   const [employees, setEmployees] = useState<any[]>([]);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>('');
+  const [selectedDepartment, setSelectedDepartment] = useState<string>('ALL');
   const [customDeductions, setCustomDeductions] = useState({
     unpaidLeaves: 0,
     pfRate: 0.12
@@ -385,8 +386,13 @@ export default function Payroll() {
         </div>
       </div>
 
-      {/* Interactive Financial Analytics Dashboard */}
-      <PayrollVisualization employees={employees} history={history} />
+      {/* Interactive Financial Analytics Dashboard with Department Filter */}
+      <PayrollVisualization 
+        employees={employees} 
+        history={history} 
+        initialDepartment={selectedDepartment}
+        onDepartmentChange={setSelectedDepartment}
+      />
     </div>
   );
 }
