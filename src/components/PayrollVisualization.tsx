@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { 
   ResponsiveContainer, 
   AreaChart, 
@@ -424,8 +425,16 @@ export default function PayrollVisualization({
         </div>
       )}
 
-      {/* Main Chart Body */}
-      <div className="relative z-10">
+      {/* Main Chart Body with Smooth AnimatePresence Transitions */}
+      <AnimatePresence mode="wait">
+        <motion.div 
+          key={`${activeTab}-${selectedDepartment}`}
+          initial={{ opacity: 0, y: 10, scale: 0.99 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: -8, scale: 0.99 }}
+          transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
+          className="relative z-10"
+        >
         {activeTab === 'trends' ? (
           /* ========================================================
              Tab 1: Monthly Expenditure Trends
@@ -469,17 +478,24 @@ export default function PayrollVisualization({
 
             {/* Simulated Banner Indicator if history is small */}
             {isSimulated && (
-              <div className="p-3 bg-indigo-500/5 border border-indigo-500/10 text-indigo-400 rounded-xl text-[10px] font-bold uppercase tracking-wider flex items-center gap-2">
+              <motion.div 
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                className="p-3 bg-indigo-500/5 border border-indigo-500/10 text-indigo-400 rounded-xl text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 overflow-hidden"
+              >
                 <Sparkles size={14} className="flex-shrink-0 text-cyan-400 animate-spin-slow" />
                 <span>Simulated Historical Baseline &bull; Calibrated to {selectedDepartment !== 'ALL' ? `${selectedDepartment} compensation scale` : 'aggregate payroll structure'}</span>
-              </div>
+              </motion.div>
             )}
 
             {/* Recharts Container */}
             <div className="h-[320px] w-full bg-slate-950/30 border border-slate-900 p-4 rounded-2xl relative">
-              <ResponsiveContainer width="100%" height="100%">
-                {trendView === 'area' ? (
-                  <AreaChart data={trendData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+              {trendView === 'area' ? (
+                <ResponsiveContainer key={`resp-area-${selectedDepartment}`} width="100%" height="100%">
+                  <AreaChart 
+                    data={trendData} 
+                    margin={{ top: 10, right: 10, left: -10, bottom: 0 }}
+                  >
                     <defs>
                       <linearGradient id="netColor" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="#22d3ee" stopOpacity={0.25}/>
@@ -522,12 +538,56 @@ export default function PayrollVisualization({
                       iconSize={8}
                       wrapperStyle={{ fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em' }}
                     />
-                    <Area type="monotone" name="Net Paid Out" dataKey="net" stroke="#22d3ee" strokeWidth={3} fillOpacity={1} fill="url(#netColor)" />
-                    <Area type="monotone" name="Income Tax Withheld" dataKey="tax" stroke="#f59e0b" strokeWidth={2} fillOpacity={1} fill="url(#taxColor)" />
-                    <Area type="monotone" name="Provident Fund" dataKey="pf" stroke="#6366f1" strokeWidth={2} fillOpacity={1} fill="url(#pfColor)" />
+                    <Area 
+                      key={`area-net-${selectedDepartment}`}
+                      type="monotone" 
+                      name="Net Paid Out" 
+                      dataKey="net" 
+                      stroke="#22d3ee" 
+                      strokeWidth={3} 
+                      fillOpacity={1} 
+                      fill="url(#netColor)" 
+                      isAnimationActive={true}
+                      animationDuration={850}
+                      animationEasing="ease-out"
+                      animationBegin={40}
+                    />
+                    <Area 
+                      key={`area-tax-${selectedDepartment}`}
+                      type="monotone" 
+                      name="Income Tax Withheld" 
+                      dataKey="tax" 
+                      stroke="#f59e0b" 
+                      strokeWidth={2} 
+                      fillOpacity={1} 
+                      fill="url(#taxColor)" 
+                      isAnimationActive={true}
+                      animationDuration={850}
+                      animationEasing="ease-out"
+                      animationBegin={90}
+                    />
+                    <Area 
+                      key={`area-pf-${selectedDepartment}`}
+                      type="monotone" 
+                      name="Provident Fund" 
+                      dataKey="pf" 
+                      stroke="#6366f1" 
+                      strokeWidth={2} 
+                      fillOpacity={1} 
+                      fill="url(#pfColor)" 
+                      isAnimationActive={true}
+                      animationDuration={850}
+                      animationEasing="ease-out"
+                      animationBegin={140}
+                    />
                   </AreaChart>
-                ) : (
-                  <BarChart data={trendData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+                </ResponsiveContainer>
+              ) : (
+                <ResponsiveContainer key={`resp-bar-${selectedDepartment}`} width="100%" height="100%">
+                  <BarChart 
+                    data={trendData} 
+                    margin={{ top: 10, right: 10, left: -10, bottom: 0 }}
+                  >
                     <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
                     <XAxis 
                       dataKey="month" 
@@ -556,17 +616,53 @@ export default function PayrollVisualization({
                       iconSize={8}
                       wrapperStyle={{ fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em' }}
                     />
-                    <Bar name="Net Payout" dataKey="net" fill="#22d3ee" radius={[4, 4, 0, 0]} />
-                    <Bar name="Tax Withheld" dataKey="tax" fill="#f59e0b" radius={[4, 4, 0, 0]} />
-                    <Bar name="Provident Fund" dataKey="pf" fill="#6366f1" radius={[4, 4, 0, 0]} />
+                    <Bar 
+                      key={`bar-net-${selectedDepartment}`}
+                      name="Net Payout" 
+                      dataKey="net" 
+                      fill="#22d3ee" 
+                      radius={[4, 4, 0, 0]} 
+                      isAnimationActive={true}
+                      animationDuration={750}
+                      animationEasing="ease-out"
+                      animationBegin={40}
+                    />
+                    <Bar 
+                      key={`bar-tax-${selectedDepartment}`}
+                      name="Tax Withheld" 
+                      dataKey="tax" 
+                      fill="#f59e0b" 
+                      radius={[4, 4, 0, 0]} 
+                      isAnimationActive={true}
+                      animationDuration={750}
+                      animationEasing="ease-out"
+                      animationBegin={90}
+                    />
+                    <Bar 
+                      key={`bar-pf-${selectedDepartment}`}
+                      name="Provident Fund" 
+                      dataKey="pf" 
+                      fill="#6366f1" 
+                      radius={[4, 4, 0, 0]} 
+                      isAnimationActive={true}
+                      animationDuration={750}
+                      animationEasing="ease-out"
+                      animationBegin={140}
+                    />
                   </BarChart>
-                )}
-              </ResponsiveContainer>
+                </ResponsiveContainer>
+              )}
             </div>
 
             {/* Trends Bottom Key Metrics */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4">
-              <div className="bg-slate-900/30 p-4 rounded-2xl border border-slate-900 flex items-center gap-3">
+              <motion.div 
+                key={`metric-net-${selectedDepartment}`}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.28, delay: 0.05 }}
+                className="bg-slate-900/30 p-4 rounded-2xl border border-slate-900 flex items-center gap-3"
+              >
                 <div className="w-9 h-9 bg-cyan-500/10 rounded-xl flex items-center justify-center text-cyan-400">
                   <DollarSign size={16} />
                 </div>
@@ -578,9 +674,15 @@ export default function PayrollVisualization({
                     ${Math.round(trendData.reduce((acc, c) => acc + c.net, 0) / trendData.length).toLocaleString()}
                   </p>
                 </div>
-              </div>
+              </motion.div>
 
-              <div className="bg-slate-900/30 p-4 rounded-2xl border border-slate-900 flex items-center gap-3">
+              <motion.div 
+                key={`metric-tax-${selectedDepartment}`}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.28, delay: 0.1 }}
+                className="bg-slate-900/30 p-4 rounded-2xl border border-slate-900 flex items-center gap-3"
+              >
                 <div className="w-9 h-9 bg-amber-500/10 rounded-xl flex items-center justify-center text-amber-400">
                   <Percent size={16} />
                 </div>
@@ -592,9 +694,15 @@ export default function PayrollVisualization({
                       : 14}%
                   </p>
                 </div>
-              </div>
+              </motion.div>
 
-              <div className="bg-slate-900/30 p-4 rounded-2xl border border-slate-900 flex items-center gap-3">
+              <motion.div 
+                key={`metric-gross-${selectedDepartment}`}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.28, delay: 0.15 }}
+                className="bg-slate-900/30 p-4 rounded-2xl border border-slate-900 flex items-center gap-3"
+              >
                 <div className="w-9 h-9 bg-indigo-500/10 rounded-xl flex items-center justify-center text-indigo-400">
                   <Layers size={16} />
                 </div>
@@ -604,7 +712,7 @@ export default function PayrollVisualization({
                     ${Math.round(trendData[trendData.length - 1]?.total || 0).toLocaleString()}
                   </p>
                 </div>
-              </div>
+              </motion.div>
             </div>
           </div>
         ) : (
@@ -660,6 +768,7 @@ export default function PayrollVisualization({
                       <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
                           <Pie
+                            key={`pie-all-${selectedDepartment}`}
                             data={allDeptDistribution}
                             cx="50%"
                             cy="50%"
@@ -667,6 +776,10 @@ export default function PayrollVisualization({
                             outerRadius={90}
                             paddingAngle={3}
                             dataKey="total"
+                            isAnimationActive={true}
+                            animationDuration={900}
+                            animationEasing="ease-out"
+                            animationBegin={40}
                           >
                             {allDeptDistribution.map((entry, index) => (
                               <Cell key={`cell-${index}`} fill={entry.color} />
@@ -681,17 +794,26 @@ export default function PayrollVisualization({
                       </ResponsiveContainer>
 
                       {/* Centered Budget Sum */}
-                      <div className="absolute flex flex-col items-center justify-center text-center pointer-events-none">
+                      <motion.div 
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.3 }}
+                        className="absolute flex flex-col items-center justify-center text-center pointer-events-none"
+                      >
                         <span className="text-[8px] text-slate-500 font-black uppercase tracking-widest leading-none mb-1">TOTAL BUDGET</span>
                         <span className="text-lg font-black text-white font-mono leading-none">
                           ${totalOverallBudget.toLocaleString()}
                         </span>
                         <span className="text-[8px] text-indigo-400 font-bold uppercase tracking-widest mt-1">MONTHLY BASE</span>
-                      </div>
+                      </motion.div>
                     </div>
                   ) : (
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={allDeptDistribution} layout="vertical" margin={{ top: 10, right: 10, left: 10, bottom: 5 }}>
+                    <ResponsiveContainer key={`resp-comp-${selectedDepartment}`} width="100%" height="100%">
+                      <BarChart 
+                        data={allDeptDistribution} 
+                        layout="vertical" 
+                        margin={{ top: 10, right: 10, left: 10, bottom: 5 }}
+                      >
                         <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" horizontal={false} />
                         <XAxis 
                           type="number"
@@ -717,9 +839,39 @@ export default function PayrollVisualization({
                           iconSize={8}
                           wrapperStyle={{ fontSize: '9px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '10px' }}
                         />
-                        <Bar name="Basic Pay" dataKey="basic" stackId="a" fill="#22d3ee" />
-                        <Bar name="HRA" dataKey="hra" stackId="a" fill="#6366f1" />
-                        <Bar name="Allowances" dataKey="allowances" stackId="a" fill="#ec4899" />
+                        <Bar 
+                          key={`bar-basic-${selectedDepartment}`}
+                          name="Basic Pay" 
+                          dataKey="basic" 
+                          stackId="a" 
+                          fill="#22d3ee" 
+                          isAnimationActive={true}
+                          animationDuration={800}
+                          animationEasing="ease-out"
+                          animationBegin={40}
+                        />
+                        <Bar 
+                          key={`bar-hra-${selectedDepartment}`}
+                          name="HRA" 
+                          dataKey="hra" 
+                          stackId="a" 
+                          fill="#6366f1" 
+                          isAnimationActive={true}
+                          animationDuration={800}
+                          animationEasing="ease-out"
+                          animationBegin={90}
+                        />
+                        <Bar 
+                          key={`bar-allowances-${selectedDepartment}`}
+                          name="Allowances" 
+                          dataKey="allowances" 
+                          stackId="a" 
+                          fill="#ec4899" 
+                          isAnimationActive={true}
+                          animationDuration={800}
+                          animationEasing="ease-out"
+                          animationBegin={140}
+                        />
                       </BarChart>
                     </ResponsiveContainer>
                   )}
@@ -733,15 +885,18 @@ export default function PayrollVisualization({
                   </div>
                   
                   <div className="space-y-2 max-h-[250px] overflow-y-auto pr-1">
-                    {allDeptDistribution.map((dept) => {
+                    {allDeptDistribution.map((dept, idx) => {
                       const percentage = totalOverallBudget > 0 
                         ? Math.round((dept.total / totalOverallBudget) * 100) 
                         : 0;
 
                       return (
-                        <button 
+                        <motion.button 
                           key={dept.name}
                           type="button"
+                          initial={{ opacity: 0, x: 10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ duration: 0.22, delay: idx * 0.04 }}
                           onClick={() => handleDepartmentChange(dept.name)}
                           className="w-full text-left p-3 bg-slate-950/40 hover:bg-slate-900/60 hover:border-slate-700/60 rounded-xl border border-slate-900 flex items-center justify-between transition-all group cursor-pointer"
                         >
@@ -762,7 +917,7 @@ export default function PayrollVisualization({
                             <p className="text-xs font-black text-white">${dept.total.toLocaleString()}</p>
                             <p className="text-[9px] text-cyan-400 font-bold">{percentage}% Share</p>
                           </div>
-                        </button>
+                        </motion.button>
                       );
                     })}
                   </div>
@@ -786,6 +941,7 @@ export default function PayrollVisualization({
                       <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
                           <Pie
+                            key={`pie-dept-${selectedDepartment}`}
                             data={specificDeptBreakdown.componentPie}
                             cx="50%"
                             cy="50%"
@@ -793,6 +949,10 @@ export default function PayrollVisualization({
                             outerRadius={90}
                             paddingAngle={3}
                             dataKey="value"
+                            isAnimationActive={true}
+                            animationDuration={900}
+                            animationEasing="ease-out"
+                            animationBegin={40}
                           >
                             {specificDeptBreakdown.componentPie.map((entry, index) => (
                               <Cell key={`comp-cell-${index}`} fill={entry.color} />
@@ -807,17 +967,25 @@ export default function PayrollVisualization({
                       </ResponsiveContainer>
 
                       {/* Centered Department Total */}
-                      <div className="absolute flex flex-col items-center justify-center text-center pointer-events-none">
+                      <motion.div 
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.3 }}
+                        className="absolute flex flex-col items-center justify-center text-center pointer-events-none"
+                      >
                         <span className="text-[8px] text-slate-500 font-black uppercase tracking-widest leading-none mb-1">DEPT TOTAL</span>
                         <span className="text-lg font-black text-white font-mono leading-none">
                           ${specificDeptBreakdown.totalBudget.toLocaleString()}
                         </span>
                         <span className="text-[8px] text-cyan-400 font-bold uppercase tracking-widest mt-1">{selectedDepartment}</span>
-                      </div>
+                      </motion.div>
                     </div>
                   ) : specificDeptBreakdown ? (
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={specificDeptBreakdown.employeeBars} margin={{ top: 10, right: 10, left: -10, bottom: 5 }}>
+                    <ResponsiveContainer key={`resp-emp-${selectedDepartment}`} width="100%" height="100%">
+                      <BarChart 
+                        data={specificDeptBreakdown.employeeBars} 
+                        margin={{ top: 10, right: 10, left: -10, bottom: 5 }}
+                      >
                         <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
                         <XAxis 
                           dataKey="name" 
@@ -841,9 +1009,39 @@ export default function PayrollVisualization({
                           iconSize={8}
                           wrapperStyle={{ fontSize: '9px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em' }}
                         />
-                        <Bar name="Basic Pay" dataKey="basic" stackId="emp" fill="#22d3ee" />
-                        <Bar name="HRA" dataKey="hra" stackId="emp" fill="#6366f1" />
-                        <Bar name="Allowances" dataKey="allowances" stackId="emp" fill="#ec4899" />
+                        <Bar 
+                          key={`bar-emp-basic-${selectedDepartment}`}
+                          name="Basic Pay" 
+                          dataKey="basic" 
+                          stackId="emp" 
+                          fill="#22d3ee" 
+                          isAnimationActive={true}
+                          animationDuration={800}
+                          animationEasing="ease-out"
+                          animationBegin={40}
+                        />
+                        <Bar 
+                          key={`bar-emp-hra-${selectedDepartment}`}
+                          name="HRA" 
+                          dataKey="hra" 
+                          stackId="emp" 
+                          fill="#6366f1" 
+                          isAnimationActive={true}
+                          animationDuration={800}
+                          animationEasing="ease-out"
+                          animationBegin={90}
+                        />
+                        <Bar 
+                          key={`bar-emp-allowances-${selectedDepartment}`}
+                          name="Allowances" 
+                          dataKey="allowances" 
+                          stackId="emp" 
+                          fill="#ec4899" 
+                          isAnimationActive={true}
+                          animationDuration={800}
+                          animationEasing="ease-out"
+                          animationBegin={140}
+                        />
                       </BarChart>
                     </ResponsiveContainer>
                   ) : null}
@@ -851,7 +1049,13 @@ export default function PayrollVisualization({
 
                 {/* Specific Department Breakdown Details Pane */}
                 <div className="lg:col-span-5 space-y-4">
-                  <div className="p-4 bg-slate-900/40 rounded-2xl border border-slate-800/80 space-y-3">
+                  <motion.div 
+                    key={`dept-panel-${selectedDepartment}`}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="p-4 bg-slate-900/40 rounded-2xl border border-slate-800/80 space-y-3"
+                  >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Building2 size={16} className="text-cyan-400" />
@@ -878,18 +1082,21 @@ export default function PayrollVisualization({
                         </p>
                       </div>
                     </div>
-                  </div>
+                  </motion.div>
 
                   {/* Component Legend / Details */}
                   <div className="space-y-2 max-h-[160px] overflow-y-auto pr-1">
-                    {specificDeptBreakdown?.componentPie.map((comp) => {
+                    {specificDeptBreakdown?.componentPie.map((comp, idx) => {
                       const pct = specificDeptBreakdown.totalBudget > 0 
                         ? Math.round((comp.value / specificDeptBreakdown.totalBudget) * 100)
                         : 0;
 
                       return (
-                        <div 
-                          key={comp.name}
+                        <motion.div 
+                          key={`${selectedDepartment}-${comp.name}`}
+                          initial={{ opacity: 0, x: 10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ duration: 0.22, delay: idx * 0.05 }}
                           className="p-2.5 bg-slate-950/40 rounded-xl border border-slate-900 flex items-center justify-between text-xs"
                         >
                           <div className="flex items-center gap-2.5">
@@ -900,7 +1107,7 @@ export default function PayrollVisualization({
                             <span className="font-bold text-white">${comp.value.toLocaleString()}</span>
                             <span className="text-[10px] text-slate-500 ml-2">({pct}%)</span>
                           </div>
-                        </div>
+                        </motion.div>
                       );
                     })}
                   </div>
@@ -917,7 +1124,8 @@ export default function PayrollVisualization({
             )}
           </div>
         )}
-      </div>
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 }
